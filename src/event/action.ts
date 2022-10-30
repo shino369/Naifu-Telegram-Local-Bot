@@ -15,10 +15,11 @@ async function sendMedia(
     number: number,
     newCache: UserConfig,
     img: { file: string; width: number; height: number } | undefined,
+    channelId?: number
   ) {
     //by value to prevent bug
     processImg(number, newCache, img).then(img => {
-      bot.telegram.sendMediaGroup(userId, img)
+      bot.telegram.sendMediaGroup(channelId? channelId : userId, img)
       cache[userId].status = 'idle'
       writeJsonFileFromPath('./store.json', cache)
     })
@@ -27,8 +28,9 @@ async function sendMedia(
 const action = (bot: Telegraf<Context<Update>>) => {
     bot.action(/.+/, async ctx => {
         const split = ctx.match[0].split('_')
-        const userId = ctx.update.callback_query.from.id
-    
+        const userId =  ctx.update.callback_query.from.id
+        const channelId = ctx.update.callback_query.message?.chat.id
+        console.log(ctx.update.callback_query.message?.chat)
         let text: string = (ctx.update.callback_query.message as any)['text']
         let photo
         let url: URL
@@ -75,7 +77,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
                 //promise, don't wait
     
                 const newCache = cache[userId]
-                sendMedia(bot, userId, number, newCache, img)
+                sendMedia(bot, userId, number, newCache, img, channelId)
     
                 return ctx.reply(`generating ${number} image.... please wait`)
               } else if (cache[userId].status === 'idle') {
@@ -160,7 +162,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
                 writeJsonFileFromPath('./store.json', cache)
     
                 const newCache = cache[userId]
-                sendMedia(bot, userId, number, newCache, img)
+                sendMedia(bot, userId, number, newCache, img, channelId)
                 return ctx.reply(`generating ${number} image again.... please wait`)
               }
     
