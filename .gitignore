@@ -11,3 +11,5 @@ saved_setting.bak.json
 .env
 
 build/
+
+compress/

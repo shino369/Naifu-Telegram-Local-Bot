@@ -122,7 +122,7 @@ export async function processImg(
   newCache: UserConfig,
   img: { file: string; width: number; height: number } | undefined,
 ) {
-  console.log(newCache.config)
+  console.log(color('operation', '......processing image'))
   let img2imgOptions = {}
   if (img) {
     const { width: tempW, height: tempH } = calculateWH(img.width, img.height)
@@ -164,6 +164,7 @@ export async function processImg(
     media: { source: file.image },
     caption: `seed: ${payload.seed} #${index + 1}`,
   }))
+  console.log(color('operation', '......returning image'))
   return medias
 }
 
@@ -187,4 +188,32 @@ export function calculateWH(width: number, height: number) {
   }
 
   return { width: tempW, height: tempH }
+}
+
+export const returnDefaultWithNewSeed = () => {
+  const randomSeed = getRandom()
+  return  {
+    positive: config.default.positive,
+    negative: config.default.negative,
+    scale: config.default.scale,
+    steps: config.default.steps,
+    size: config.default.size,
+    orientation: config.default.orientation,
+    seed: randomSeed,
+  }
+}
+
+export const returnImg2ImgDefaultWithNewSeed = () => {
+  const randomSeed = getRandom()
+  return {
+    positive: config.default.positive,
+    negative: config.default.negative,
+    scale: config.default.scale,
+    steps: config.default.img2imgStep,
+    size: config.default.size,
+    orientation: config.default.orientation,
+    strength: config.default.strength,
+    noise: config.default.noise,
+    seed: randomSeed,
+  }
 }

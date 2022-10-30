@@ -3,10 +3,9 @@ import { cache } from "../index"
 import Context from "telegraf/typings/context"
 import { Update } from "telegraf/typings/core/types/typegram"
 import { Telegraf } from "telegraf/typings/telegraf"
-import { calculateWH, color, getEditmsgStr, getRandom, initialize, processImg, writeJsonFileFromPath } from "../utils"
+import { color, getRandom, initialize, processImg, writeJsonFileFromPath } from "../utils"
 import { config } from "../constant"
 import { T2ImgConfig, UserConfig } from "types"
-import { Markup } from "telegraf"
 import fetch from "node-fetch"
 
 
@@ -145,32 +144,11 @@ const action = (bot: Telegraf<Context<Update>>) => {
                   }),
                   {},
                 ) as T2ImgConfig
-                console.log(color('error', '================================='))
+                console.log(color('error', '================reformatted obj================='))
                 console.log(reformated)
-                console.log(color('error', '================================='))
+                console.log(color('error', '================reformatted obj================='))
                 let oldConfig = reformated
-                // JSON.parse(
-                //   `{${text
-                //     .substring(text.indexOf('[poitive]'))
-                //     .replaceAll('\n', '')
-                //     .replaceAll('[', '","')
-                //     .replaceAll(']:', '":"')
-                //     .replace('","', '"') // the first
-                //     .replace(
-                //       'default negative prompt',
-                //       config.default.negative,
-                //     )}"}`,
-                // )
-    
-                // const oldKey = Object.keys(oldConfig)
-                // oldConfig = oldKey.reduce(
-                //   (obj, cur) => ({
-                //     ...obj,
-                //     [cur]: oldConfig[cur].trim(),
-                //   }),
-                //   {},
-                // )
-    
+
                 cache[userId] = {
                   ...cache[userId],
                   status: 'waiting',
@@ -194,3 +172,5 @@ const action = (bot: Telegraf<Context<Update>>) => {
         // return ctx.answerCbQuery(`Oh, ${ctx.match[0]}! Great choice`)
       })
 }
+
+export default action
