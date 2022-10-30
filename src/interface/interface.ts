@@ -1,11 +1,4 @@
-import {
-  SlashCommandBuilder,
-  CommandInteraction,
-  Collection,
-  PermissionResolvable,
-  Message,
-  ApplicationCommandOptionType,
-} from 'discord.js'
+import { User } from "telegraf/typings/core/types/typegram"
 
 export interface SavedSetting {
   updatedAt: string
@@ -66,7 +59,7 @@ export interface Img2imgOptions {
   height?: number
 }
 
-export interface Payload extends Img2imgOptions{
+export interface Payload extends Img2imgOptions {
   width: number
   height: number
   prompt: string
@@ -77,61 +70,25 @@ export interface Payload extends Img2imgOptions{
   ucPreset: number
   uc: string
 }
-//====================discord js types=====================
 
-export interface SlashCommandType {
+export interface FileRes {
   name: string
-  description: string
-  options?: SlashOption[]
+  image: any
 }
 
-interface SlashOption {
-  name: string
-  description: string
-  type: ApplicationCommandOptionType
-  max_length?: number
-  min_length?: number
-  min_value?: number
-  max_value?: number
-  choices?: { name: string; value: string | number }[] | Function
-  required?: boolean
+export interface UserConfig extends User {
+  status: string
+  config: T2ImgConfig
 }
 
-export interface SlashCommand {
-  command: SlashCommandBuilder | any
-  execute: (interaction: CommandInteraction) => void
-  cooldown?: number // in seconds
-}
-
-export interface Command {
-  name: string
-  execute: (message: Message, args: Array<string>) => void
-  permissions: Array<PermissionResolvable>
-  aliases: Array<string>
-  cooldown?: number
-}
-
-interface GuildOptions {
-  prefix: string
-}
-
-export type GuildOption = keyof GuildOptions
-export interface BotEvent {
-  name: string
-  once?: boolean | false
-  execute: (...args: any) => void
-}
-
-export interface Client {
-  slashCommands: Collection<string, SlashCommand>
-  commands: Collection<string, Command>
-  cooldowns: Collection<string, number>
-}
-
-declare module 'discord.js' {
-  export interface Client {
-    slashCommands: Collection<string, SlashCommand>
-    commands: Collection<string, Command>
-    cooldowns: Collection<string, number>
-  }
+export interface T2ImgConfig {
+  positive: string
+  negative: string
+  orientation: Orientation
+  size: Size
+  scale: string
+  steps: string
+  strength: string
+  noise: string
+  seed: string
 }

@@ -3,17 +3,30 @@ import moment from 'moment'
 
 export function getJsonFileFromPath(filePath: string) {
   const newDate = moment().format('YY-MM-DD-hh-mm-ss')
-  let newJson = { updatedAt: newDate, data: {} }
+  let newJson = {}
   try {
     // for saving setting
     if (fs.existsSync(filePath)) {
       const json = fs.readFileSync(filePath)
-      newJson = JSON.parse(json.toString())
+      if (json && json.toString().length > 0) {
+        newJson = JSON.parse(json.toString())
+      }
     }
   } catch (e) {
-    console.log(e)
-    console.log('Error: error when getting saved setting')
+    console.error(e)
+    console.error('Error: error when getting setting')
   } finally {
     return newJson
+  }
+}
+
+export function writeJsonFileFromPath(filePath: string, data: Object) {
+  try {
+    fs.promises
+      .writeFile(filePath, JSON.stringify(data, undefined, 2))
+      .then(res => console.log('file written'))
+  } catch (e) {
+    console.error(e)
+    console.error('Error: error when writting setting')
   }
 }
