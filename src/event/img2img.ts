@@ -53,7 +53,7 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
       settingKeys.forEach(key => {
         const match = inputArr.find(f => f.includes(`${key}:`))
         if (match) {
-          if(validate(key, match)) {
+          if(!validate(key, match)) {
             console.log(color('error', `wrong format for ${key}`))
             return
           }
