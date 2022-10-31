@@ -13,4 +13,5 @@ saved_setting.bak.json
 build/
 
 compress/
+log/
 store.json

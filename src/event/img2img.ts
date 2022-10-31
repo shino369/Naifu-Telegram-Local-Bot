@@ -1,33 +1,37 @@
-import { cache } from '../index'
+import { queuingCache } from '../index'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { Telegraf } from 'telegraf/typings/telegraf'
 import {
   calculateWH,
+  color,
   getEditmsgStr,
   getInlinKeyboard,
-  initialize,
   returnImg2ImgDefaultWithNewSeed,
+  validate,
   writeJsonFileFromPath,
 } from '../utils'
-import { T2ImgConfig } from 'types'
+import { T2ImgConfig, UserConfig } from 'types'
 
 const PROMPT = 'prompt'
 
 const img2img = (bot: Telegraf<Context<Update>>) => {
   bot.on('photo', async ctx => {
     const userId = ctx.message.from.id
-    if (cache[userId] && cache[userId].status !== 'idle') {
-      return ctx.reply('you previous job has not been finished yet')
+    if (queuingCache.getQueue().find((userConfig) => userConfig.id === userId)) {
+      console.log(color('error', `previous job not finished`))
+      return ctx.reply(
+        `${
+          ctx.message.from.first_name ? ` ${ctx.message.from.first_name}` : ''
+        },  your previous job is still on the queue.`,
+      )
     }
-    initialize(userId, ctx.message.from)
+
     const { caption, photo } = ctx.update.message
 
     if (caption && caption.indexOf('/prompt') === 0) {
       // must start with
       const originalSizePhoto = photo[photo.length - 1]
-
-      initialize(userId, ctx.message.from)
 
       let inputArr: string[] = []
       if (caption) {
@@ -49,36 +53,42 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
       settingKeys.forEach(key => {
         const match = inputArr.find(f => f.includes(`${key}:`))
         if (match) {
+          if(validate(key, match)) {
+            console.log(color('error', `wrong format for ${key}`))
+            return
+          }
           newSetting[key] = match.substring(key.length + 1).trim() as any
         }
       })
 
-      cache[userId].config = {
-        ...defaultSetting,
-        ...newSetting,
-        positive: newSetting.positive
-          ? defaultSetting.positive + newSetting.positive
-          : defaultSetting.positive,
-        seed: newSetting.seed ? newSetting.seed : defaultSetting.seed,
-      }
-      cache[userId] = {
-        ...cache[userId],
-        status: 'pending',
+      const newJob: UserConfig = {
+        ...ctx.message.from,
+        status: '',
+        number: -1,
+        config: {
+          ...defaultSetting,
+          ...newSetting,
+          positive: newSetting.positive
+            ? defaultSetting.positive + newSetting.positive
+            : defaultSetting.positive,
+          seed: newSetting.seed ? newSetting.seed : defaultSetting.seed,
+        }
       }
 
-      writeJsonFileFromPath('./store.json', cache)
-      const newCache = cache[userId]
-      // console.log(newCache)
+      // push to pre-queue
+      // queuingCache.pushPreQueue(newJob)
+
+      // write log
+      // writeJsonFileFromPath('./log/log.json', newJob, true)
+
       return ctx.replyWithPhoto(originalSizePhoto.file_id, {
         caption: getEditmsgStr(
-          newCache,
+          newJob,
           calculateWH(originalSizePhoto.width, originalSizePhoto.height),
         ),
         reply_markup: getInlinKeyboard(),
       })
     }
-
-    // else do nothing
   })
 }
 

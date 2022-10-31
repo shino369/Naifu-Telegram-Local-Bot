@@ -20,11 +20,18 @@ export function getJsonFileFromPath(filePath: string) {
   }
 }
 
-export function writeJsonFileFromPath(filePath: string, data: Object) {
+export function writeJsonFileFromPath(filePath: string, data: Object, append?: boolean) {
   try {
-    fs.promises
+    if(append) {
+      fs.promises
+      .appendFile(filePath, JSON.stringify(data, undefined, 2))
+      .then(res => console.log('file written'))
+    }else {
+      fs.promises
       .writeFile(filePath, JSON.stringify(data, undefined, 2))
       .then(res => console.log('file written'))
+    }
+
   } catch (e) {
     console.error(e)
     console.error('Error: error when writting setting')

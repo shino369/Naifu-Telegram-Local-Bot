@@ -78,7 +78,14 @@ export interface FileRes {
 
 export interface UserConfig extends User {
   status: string
+  number: number
   config: T2ImgConfig
+  channelId? : number
+  img?: {
+    file: string
+    width: number
+    height: number
+  }
 }
 
 export interface T2ImgConfig {

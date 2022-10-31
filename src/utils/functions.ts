@@ -3,7 +3,6 @@ import { config } from '../constant'
 import fetch from 'node-fetch'
 import { FileRes, Payload, UserConfig } from 'types'
 import moment from 'moment'
-import { cache } from '../index'
 import { Markup } from 'telegraf'
 import { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import _ from 'lodash'
@@ -71,13 +70,6 @@ export const getImageResult = async (payload: Payload) => {
   return fileArr
 }
 
-export const initialize = (userId: number, userData: any) => {
-  cache[userId] = {
-    ...userData,
-    status: 'idle',
-  }
-}
-
 export const getRandom = () => {
   return Math.floor(Math.random() * 2 ** 32 - 1).toString()
 }
@@ -86,7 +78,11 @@ export const getEditmsgStr = (
   newCache: UserConfig,
   img2img?: { width: number; height: number },
 ) => {
-  const str = `select number of image to be generated.\n[positive]:\n${newCache.config.positive.replace(
+  const str = `Created by${
+    newCache.first_name ? ` ${newCache.first_name}` : ''
+  } ${newCache.last_name ? ` ${newCache.last_name}, ` : ''} [ID]: ${
+    newCache.id
+  }\nPlease select number to generate.\n[positive]:\n${newCache.config.positive.replace(
     config.default.positive,
     '',
   )}\n[negative]:\n${newCache.config.negative.replace(
@@ -95,7 +91,7 @@ export const getEditmsgStr = (
   )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}${
     img2img
       ? `　　[width]: ${img2img.width}　　[height]: ${img2img.height}　　[strength]: ${newCache.config.strength}　　[noise]: ${newCache.config.noise}`
-      : `　　[size]: ${newCache.config.size}　　[orientation]: ${newCache.config.orientation}`
+      : `　　[size]: ${newCache.config.size}　　[orientation]: ${newCache.config.orientation}　　[seed]: ${newCache.config.seed}`
   }`
   return str
 }
@@ -113,6 +109,7 @@ export const getInlinKeyboard = () => {
         .map((arr, index) =>
           Markup.button.callback(`${index + 6}`, `number_${index + 6}`),
         ),
+      [Markup.button.callback(`exact seed`, `number_${-1}`),]
     ],
   }
 }
@@ -127,8 +124,8 @@ export async function processImg(
   if (img) {
     const { width: tempW, height: tempH } = calculateWH(img.width, img.height)
     img2imgOptions = {
-      strength: newCache.config.strength,
-      noise: newCache.config.noise,
+      strength: parseFloat(newCache.config.strength),
+      noise: parseFloat(newCache.config.noise),
       image: img.file,
       width: tempW,
       height: tempH,
@@ -162,7 +159,11 @@ export async function processImg(
   const medias: InputMediaPhoto[] = files.map((file, index) => ({
     type: 'photo',
     media: { source: file.image },
-    caption: `seed: ${payload.seed} #${index + 1}`,
+    caption: `Created by${
+      newCache.first_name ? ` ${newCache.first_name}` : ''
+    } ${newCache.last_name ? ` ${newCache.last_name}, ` : ''}\nseed: ${
+      payload.seed
+    } #${index + 1}`,
   }))
   console.log(color('operation', '......returning image'))
   return medias
@@ -192,7 +193,7 @@ export function calculateWH(width: number, height: number) {
 
 export const returnDefaultWithNewSeed = () => {
   const randomSeed = getRandom()
-  return  {
+  return {
     positive: config.default.positive,
     negative: config.default.negative,
     scale: config.default.scale,
@@ -215,5 +216,47 @@ export const returnImg2ImgDefaultWithNewSeed = () => {
     strength: config.default.strength,
     noise: config.default.noise,
     seed: randomSeed,
+  }
+}
+
+export const validate = (key: string, match: string) => {
+  const str = match.substring(key.length + 1).trim()
+  switch (key) {
+    case 'orientation':
+      if (!['portrait', 'landscape'].includes(str.toLowerCase())) {
+        return false
+      }
+      return true
+    case 'size':
+      if (!['small', 'medium', 'large'].includes(str.toLowerCase())) {
+        return false
+      }
+      return true
+    case 'steps':
+      if (!str.match(/\b([0-9]|[1-4][0-9]|50)\b/) || str.length > 2) {
+        return false
+      }
+      return true
+    case 'scale':
+      if (!str.match(/\b([0-9]|1[0-9]|2[0-5])\b/) || str.length > 2) {
+        return false
+      }
+      return true
+    case 'seed':
+      if (
+        (key === 'seed' && (parseInt(str) > 4294967295 || parseInt(str) < 0)) ||
+        str.length > 10
+      ) {
+        return false
+      }
+      return true
+    case 'strength':
+      'noise'
+      if (parseFloat(str) > 10 || parseFloat(str) < 0 || str.length > 3) {
+        return false
+      }
+      return true
+    default:
+      return true
   }
 }
