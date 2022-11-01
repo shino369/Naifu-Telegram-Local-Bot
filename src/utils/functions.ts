@@ -252,7 +252,7 @@ export const validate = (key: string, match: string) => {
       return true
     case 'strength':
       'noise'
-      if (parseFloat(str) > 10 || parseFloat(str) < 0 || str.length > 3) {
+      if (parseFloat(str) > 1 || parseFloat(str) < 0 || str.length > 3) {
         return false
       }
       return true
