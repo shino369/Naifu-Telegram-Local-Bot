@@ -74,7 +74,8 @@ const action = (bot: Telegraf<Context<Update>>) => {
         const configId = text.substring(
           text.indexOf(configIdStr) + configIdStr.length,
           text.indexOf('\n'),
-        )
+        ).trim()
+        
         const keysArr = [
           'positive',
           'negative',
@@ -88,9 +89,9 @@ const action = (bot: Telegraf<Context<Update>>) => {
           'height',
           'seed',
         ]
-        const createdUser = parseInt(
-          text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),
-        )
+        // const createdUser = parseInt(
+        //   text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),
+        // )
         const newText = text
           .replace('default negative prompt,', config.default.negative)
           .replaceAll('\n', '')

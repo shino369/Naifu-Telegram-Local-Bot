@@ -26,7 +26,7 @@ export function getconfigById(filePath: string, id: string) {
     // for saving setting
     if (fs.existsSync(filePath)) {
       const unparsedArr = (fs.readFileSync(filePath)).toString().split('||')
-      console.log(unparsedArr)
+      // console.log(unparsedArr)
       if(unparsedArr.length > 0) {
         match = unparsedArr.filter(f => f!=='').map(arr => JSON.parse(arr)).find(json => json.configId === id)
       }
@@ -44,7 +44,7 @@ export function writeJsonFileFromPath(filePath: string, data: Object, append?: b
     if(append) {
       fs.promises
       .appendFile(filePath, ',' + JSON.stringify(data, undefined, 2))   //create ,{},{}..... 
-      .then(res => console.log('file written'))
+      .then(res => console.log('config appended'))
     }else {
       fs.promises
       .writeFile(filePath, JSON.stringify(data, undefined, 2))
