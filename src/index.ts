@@ -53,7 +53,9 @@ async function startBatchJob() {
       const job = queuingCache.getFirstQueue()
       // console.log(job)
       const img = await processImg(job.number, job, job.img)
-      bot.telegram.sendMediaGroup(job.channelId ? job.channelId : job.id, img)
+      bot.telegram.sendMediaGroup(job.channelId ? job.channelId : job.id, img, {
+      reply_to_message_id: job.messageId
+      })
 
       console.log(
         color(

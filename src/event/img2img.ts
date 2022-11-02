@@ -18,7 +18,7 @@ const PROMPT = 'prompt'
 const img2img = (bot: Telegraf<Context<Update>>) => {
   bot.on('photo', async ctx => {
     const userId = ctx.message.from.id
-    if (queuingCache.getQueue().find((userConfig) => userConfig.id === userId)) {
+    if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
       console.log(color('error', `previous job not finished`))
       return ctx.reply(
         `${
@@ -53,7 +53,7 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
       settingKeys.forEach(key => {
         const match = inputArr.find(f => f.includes(`${key}:`))
         if (match) {
-          if(!validate(key, match)) {
+          if (!validate(key, match)) {
             console.log(color('error', `wrong format for ${key}`))
             return
           }
@@ -71,8 +71,11 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
           positive: newSetting.positive
             ? defaultSetting.positive + newSetting.positive
             : defaultSetting.positive,
+          negative: newSetting.negative
+            ? defaultSetting.negative + newSetting.negative
+            : defaultSetting.negative,
           seed: newSetting.seed ? newSetting.seed : defaultSetting.seed,
-        }
+        },
       }
 
       // push to pre-queue

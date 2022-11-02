@@ -81,6 +81,8 @@ export interface UserConfig extends User {
   number: number
   config: T2ImgConfig
   channelId? : number
+  configId?: string,
+  messageId?: number,
   img?: {
     file: string
     width: number

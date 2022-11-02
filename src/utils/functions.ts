@@ -80,14 +80,14 @@ export const getEditmsgStr = (
 ) => {
   const str = `Created by${
     newCache.first_name ? ` ${newCache.first_name}` : ''
-  } ${newCache.last_name ? ` ${newCache.last_name}, ` : ''} [ID]: ${
-    newCache.id
+  }　　[config ID]: ${
+    newCache.id.toString() + '_' + moment().format('YYMMDD_HHmmss')
   }\nPlease select number to generate.\n[positive]:\n${newCache.config.positive.replace(
     config.default.positive,
     '',
   )}\n[negative]:\n${newCache.config.negative.replace(
     config.default.negative,
-    'default negative prompt',
+    'default negative prompt, ',
   )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}${
     img2img
       ? `　　[width]: ${img2img.width}　　[height]: ${img2img.height}　　[strength]: ${newCache.config.strength}　　[noise]: ${newCache.config.noise}`
@@ -109,7 +109,7 @@ export const getInlinKeyboard = () => {
         .map((arr, index) =>
           Markup.button.callback(`${index + 6}`, `number_${index + 6}`),
         ),
-      [Markup.button.callback(`exact seed`, `number_${-1}`),]
+      [Markup.button.callback(`exact seed`, `number_${-1}`)],
     ],
   }
 }
@@ -161,9 +161,7 @@ export async function processImg(
     media: { source: file.image },
     caption: `Created by${
       newCache.first_name ? ` ${newCache.first_name}` : ''
-    } ${newCache.last_name ? ` ${newCache.last_name}, ` : ''}\nseed: ${
-      payload.seed
-    } #${index + 1}`,
+    }\nseed: ${payload.seed + index}\ngetconfig ${newCache.configId}`,
   }))
   console.log(color('operation', '......returning image'))
   return medias

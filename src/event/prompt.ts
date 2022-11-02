@@ -10,9 +10,11 @@ import {
   returnDefaultWithNewSeed,
   color,
   validate,
+  getconfigById,
 } from '../utils'
 
 const PROMPT = 'prompt'
+const GETCONFIG = 'getconfig'
 
 const prompt = (bot: Telegraf<Context<Update>>) => {
   bot.command(PROMPT, async ctx => {
@@ -66,6 +68,9 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
         positive: newSetting.positive
           ? defaultSetting.positive + newSetting.positive
           : defaultSetting.positive,
+        negative: newSetting.negative
+          ? defaultSetting.negative + newSetting.negative
+          : defaultSetting.negative,
         seed: newSetting.seed ? newSetting.seed : defaultSetting.seed,
       },
     }
@@ -79,6 +84,22 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
     return ctx.reply(getEditmsgStr(newJob), {
       reply_markup: getInlinKeyboard(),
     })
+  })
+
+  bot.command(GETCONFIG, async ctx => {
+    const configId = ctx.message.text
+    .substring(GETCONFIG.length + 1).trim()
+
+    const oldConfig:UserConfig = getconfigById('./log/log.json', configId)
+
+    if(oldConfig) {
+      return ctx.reply(getEditmsgStr(oldConfig), {
+        reply_markup: getInlinKeyboard(),
+      })
+    } else {
+      return ctx.reply(`Error: config with id: [${configId}] not found`)
+    }
+
   })
 }
 

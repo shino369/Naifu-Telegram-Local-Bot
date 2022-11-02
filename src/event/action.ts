@@ -70,6 +70,11 @@ const action = (bot: Telegraf<Context<Update>>) => {
         // clicking button again
         // reassign seed
 
+        const configIdStr = '[config ID]:'
+        const configId = text.substring(
+          text.indexOf(configIdStr) + configIdStr.length,
+          text.indexOf('\n'),
+        )
         const keysArr = [
           'positive',
           'negative',
@@ -87,7 +92,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
           text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),
         )
         const newText = text
-          .replace('default negative prompt', config.default.negative)
+          .replace('default negative prompt,', config.default.negative)
           .replaceAll('\n', '')
 
         const indexObj: { [key: string]: number } = keysArr.reduce(
@@ -143,6 +148,8 @@ const action = (bot: Telegraf<Context<Update>>) => {
         const newJob: UserConfig = {
           ...ctx.update.callback_query.from,
           status: '',
+          messageId: ctx.update.callback_query.message?.message_id,
+          configId: configId,
           number: number === -1 ? 1 : number,
           config: {
             ...reformated,
@@ -164,7 +171,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
         queuingCache.pushQueue(newJob)
         queuingCache.setObsNewJob(newJob)
         // sendMedia(bot, userId, number, newJob, img, channelId)
-        return ctx.reply(
+        return ctx.answerCbQuery(
           `${number === -1 ? 1 : number} image${
             number > 1 ? 's' : ''
           } pushed to queue.... please wait`,
