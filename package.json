@@ -9,7 +9,8 @@
   "baseUrl": "./",
   "scripts": {
     "build": "tsc && set NODE_ENV=build&& nodemon --experimental-specifier-resolution=node ./build/index.js",
-    "start": "set NODE_ENV=dev&& nodemon --experimental-specifier-resolution=node ./src/index.ts"
+    "start": "set NODE_ENV=dev&& ts-node --experimental-specifier-resolution=node ./src/index.ts",
+    "mon": "set NODE_ENV=dev&& nodemon --experimental-specifier-resolution=node ./src/index.ts"
   },
   "dependencies": {
     "@types/lodash": "^4.14.186",

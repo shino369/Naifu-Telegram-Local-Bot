@@ -18,14 +18,14 @@ const PROMPT = 'prompt'
 const img2img = (bot: Telegraf<Context<Update>>) => {
   bot.on('photo', async ctx => {
     const userId = ctx.message.from.id
-    if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
-      console.log(color('error', `previous job not finished`))
-      return ctx.reply(
-        `${
-          ctx.message.from.first_name ? ` ${ctx.message.from.first_name}` : ''
-        },  your previous job is still on the queue.`,
-      )
-    }
+    // if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
+    //   console.log(color('error', `previous job not finished`))
+    //   return ctx.reply(
+    //     `${
+    //       ctx.message.from.first_name ? ` ${ctx.message.from.first_name}` : ''
+    //     },  your previous job is still on the queue.`,
+    //   )
+    // }
 
     const { caption, photo } = ctx.update.message
 

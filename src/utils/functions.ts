@@ -6,6 +6,7 @@ import moment from 'moment'
 import { Markup } from 'telegraf'
 import { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import _ from 'lodash'
+import { queuingCache } from '../index'
 
 type colorType = 'text' | 'variable' | 'error' | 'operation'
 
@@ -86,7 +87,7 @@ export const getEditmsgStr = (
     config.default.positive,
     '',
   )}\n[negative]:\n${newCache.config.negative.replace(
-    config.default.negative,
+    config.default.negative[queuingCache.getNegativeSetting()],
     'default negative prompt, ',
   )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}${
     img2img
@@ -161,7 +162,7 @@ export async function processImg(
     media: { source: file.image },
     caption: `Created by${
       newCache.first_name ? ` ${newCache.first_name}` : ''
-    }\nseed: ${payload.seed + index}\ngetconfig ${newCache.configId}`,
+    }\nseed: ${payload.seed} #${index}\ngetconfig ${newCache.configId}`,
   }))
   console.log(color('operation', '......returning image'))
   return medias
@@ -193,7 +194,7 @@ export const returnDefaultWithNewSeed = () => {
   const randomSeed = getRandom()
   return {
     positive: config.default.positive,
-    negative: config.default.negative,
+    negative: config.default.negative[queuingCache.getNegativeSetting()],
     scale: config.default.scale,
     steps: config.default.steps,
     size: config.default.size,
@@ -206,7 +207,7 @@ export const returnImg2ImgDefaultWithNewSeed = () => {
   const randomSeed = getRandom()
   return {
     positive: config.default.positive,
-    negative: config.default.negative,
+    negative: config.default.negative[queuingCache.getNegativeSetting()],
     scale: config.default.scale,
     steps: config.default.img2imgStep,
     size: config.default.size,

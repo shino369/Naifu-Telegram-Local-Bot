@@ -15,20 +15,21 @@ import {
 
 const PROMPT = 'prompt'
 const GETCONFIG = 'getconfig'
+const SETNEGATIVE = 'negative'
 
 const prompt = (bot: Telegraf<Context<Update>>) => {
   bot.command(PROMPT, async ctx => {
     const userId = ctx.message.from.id
 
     // check if exist in queue
-    if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
-      console.log(color('error', `previous job not finished`))
-      return ctx.reply(
-        `${
-          ctx.message.from.first_name ? ` ${ctx.message.from.first_name}` : ''
-        },  your previous job is still on the queue.`,
-      )
-    }
+    // if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
+    //   console.log(color('error', `previous job not finished`))
+    //   return ctx.reply(
+    //     `${
+    //       ctx.message.from.first_name ? ` ${ctx.message.from.first_name}` : ''
+    //     },  your previous job is still on the queue.`,
+    //   )
+    // }
 
     const inputArr = ctx.message.text
       .substring(PROMPT.length + 1)
@@ -87,19 +88,31 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
   })
 
   bot.command(GETCONFIG, async ctx => {
-    const configId = ctx.message.text
-    .substring(GETCONFIG.length + 1).trim()
+    const configId = ctx.message.text.substring(GETCONFIG.length + 1).trim()
 
-    const oldConfig:UserConfig = getconfigById('./log/log.json', configId)
+    const oldConfig: UserConfig = getconfigById('./log/log.json', configId)
 
-    if(oldConfig) {
+    if (oldConfig) {
       return ctx.reply(getEditmsgStr(oldConfig), {
         reply_markup: getInlinKeyboard(),
       })
     } else {
       return ctx.reply(`Error: config with id: [${configId}] not found`)
     }
+  })
 
+  bot.command(SETNEGATIVE, async ctx => {
+    const negative = ctx.message.text.substring(SETNEGATIVE.length + 1).trim()
+    const negativeObj = { negative: negative }
+
+    if (negative === 'default' || negative === 'long' ||  negative === 'mid' || negative === 'none') {
+      writeJsonFileFromPath('./store.json', negativeObj)
+      console.log(negativeObj)
+      queuingCache.setNegativeSetting(negative)
+      return ctx.reply('Setting applied')
+    } else {
+      return ctx.reply(`Error: negative with string: [${negative}] not found`)
+    }
   })
 }
 

@@ -2,8 +2,7 @@ import fs from 'fs'
 import moment from 'moment'
 
 export function getJsonFileFromPath(filePath: string) {
-  const newDate = moment().format('YY-MM-DD-hh-mm-ss')
-  let newJson = {}
+  let newJson
   try {
     // for saving setting
     if (fs.existsSync(filePath)) {
@@ -48,7 +47,7 @@ export function writeJsonFileFromPath(filePath: string, data: Object, append?: b
     }else {
       fs.promises
       .writeFile(filePath, JSON.stringify(data, undefined, 2))
-      .then(res => console.log('file written'))
+      .then(res => console.log('file written', JSON.stringify(data, undefined, 2)))
     }
 
   } catch (e) {

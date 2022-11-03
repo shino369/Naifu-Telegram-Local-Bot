@@ -4,7 +4,7 @@ import { Store } from './store'
 import { Telegraf } from 'telegraf'
 
 import { prompt, img2img, action } from './event'
-import { processImg } from './utils'
+import { getJsonFileFromPath, processImg } from './utils'
 
 dotenv.config()
 export const queuingCache = new Store()
@@ -18,6 +18,10 @@ function init() {
   img2img(bot)
   action(bot)
   // storeListener()
+
+  const negative = getJsonFileFromPath('./store.json')
+  console.log(color('operation', `using negative: ${negative['negative']}`))
+  queuingCache.setNegativeSetting(negative['negative'])
 
   const imcomingSubscription = queuingCache
     .getObsNewJob()
@@ -54,7 +58,7 @@ async function startBatchJob() {
       // console.log(job)
       const img = await processImg(job.number, job, job.img)
       bot.telegram.sendMediaGroup(job.channelId ? job.channelId : job.id, img, {
-      reply_to_message_id: job.messageId
+        reply_to_message_id: job.messageId,
       })
 
       console.log(
@@ -113,4 +117,3 @@ async function startBatchJob() {
 //   //by value to prevent bug
 // }
 init()
-

@@ -38,7 +38,7 @@ export interface Config {
   }
   default: {
     positive: string
-    negative: string
+    negative: {[key:string]: string}
     orientation: Orientation
     size: Size
     strength: number

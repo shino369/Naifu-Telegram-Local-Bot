@@ -71,11 +71,13 @@ const action = (bot: Telegraf<Context<Update>>) => {
         // reassign seed
 
         const configIdStr = '[config ID]:'
-        const configId = text.substring(
-          text.indexOf(configIdStr) + configIdStr.length,
-          text.indexOf('\n'),
-        ).trim()
-        
+        const configId = text
+          .substring(
+            text.indexOf(configIdStr) + configIdStr.length,
+            text.indexOf('\n'),
+          )
+          .trim()
+
         const keysArr = [
           'positive',
           'negative',
@@ -93,7 +95,10 @@ const action = (bot: Telegraf<Context<Update>>) => {
         //   text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),
         // )
         const newText = text
-          .replace('default negative prompt,', config.default.negative)
+          .replace(
+            'default negative prompt,',
+            config.default.negative[queuingCache.getNegativeSetting()],
+          )
           .replaceAll('\n', '')
 
         const indexObj: { [key: string]: number } = keysArr.reduce(
@@ -154,6 +159,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
           number: number === -1 ? 1 : number,
           config: {
             ...reformated,
+            positive: config.default.positive + reformated.positive,
             seed: number === -1 ? reformated.seed : getRandom(), // to be redesigned
           },
         }
