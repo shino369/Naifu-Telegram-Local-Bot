@@ -47,14 +47,17 @@ const action = (bot: Telegraf<Context<Update>>) => {
       }
     }
 
-    if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
+    if (
+      queuingCache.getQueue().filter(userConfig => userConfig.id === userId)
+        .length > 2
+    ) {
       console.log(color('error', `previous job not finished`))
       return ctx.reply(
         `${
           ctx.update.callback_query.from.first_name
             ? ` ${ctx.update.callback_query.from.first_name}`
             : ''
-        }, your previous job is still on the queue.`,
+        }, your previous job(s) are still on the queue.`,
       )
     }
 
