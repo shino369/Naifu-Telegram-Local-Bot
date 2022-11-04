@@ -101,3 +101,14 @@ export interface T2ImgConfig {
   noise: string
   seed: string
 }
+
+export type NegativeStr = 'default' | 'long' | 'none' | 'mid'
+
+
+// store.ts
+
+export type GetQueue = () => UserConfig[]
+export type GetProcessQueue = () => UserConfig[]
+export type GetNegativeSetting = () => string
+export type SetNegativeSetting = (value: string) => void
+export type PushQueue = (value: UserConfig) => void

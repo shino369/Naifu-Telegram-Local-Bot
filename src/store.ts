@@ -1,7 +1,7 @@
 import { Subject, Subscription } from 'rxjs'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
-import { UserConfig } from './types.js'
+import { NegativeStr, UserConfig } from './types.js'
 import { color, getJsonFileFromPath, processImg } from './utils/index.js'
 import { Telegraf } from 'telegraf/typings/telegraf'
 
@@ -12,19 +12,21 @@ export class Store {
   private obsNewJobSub: Subscription
   private negativeSetting: string
   private bot: Telegraf<Context<Update>>
+  private lock: boolean
 
-  constructor(bot: Telegraf<Context<Update>>, eventListener: Function[]) {
+  constructor(bot: Telegraf<Context<Update>>) {
     this.bot = bot
     this.queue = []
     this.processQueue = []
     this.obsNewJob$ = new Subject<UserConfig>()
+    this.lock = false
     this.negativeSetting = getJsonFileFromPath('./store.json').negative
     console.log(color('operation', `using negative: ${this.negativeSetting}`))
-    eventListener.forEach(event => event(this.bot))
 
     this.obsNewJobSub = this.obsNewJob$.subscribe(_newJob => {
       // if idle
-      if (this.processQueue.length === 0) {
+      if (!this.lock) {
+        this.lock = true
         this.startBatchJob()
       } else {
         console.log(color('error', 'image processer is still running, no need to restart'))
@@ -56,7 +58,7 @@ export class Store {
     return this.negativeSetting
   }
 
-  public setNegativeSetting(negative: 'default' | 'long' | 'none' | 'mid') {
+  public setNegativeSetting(negative: NegativeStr) {
     this.negativeSetting = negative
   }
 
@@ -95,7 +97,7 @@ export class Store {
     // no current running jobs
     if (this.processQueue.length === 0) {
       while (this.queue.length > 0) {
-        console.log(color('operation', '........processing image........'))
+        console.log(color('operation', 'processing image......'))
         const startTime = new Date()
 
         // remove top job from queue
@@ -126,15 +128,22 @@ export class Store {
         console.log(
           color(
             'operation',
-            `........remaining ${this.queue.length} job(s)........`,
+            `remaining ${this.queue.length} job(s)......`,
           ),
         )
 
         // if still have remaining job, delay before next loop
         if(this.queue.length > 0) {
-          await this.delay(10000)
+          await this.delay(15000)
         }
+        // console.log(
+        //   color(
+        //     'variable',
+        //     `added delay to ${new Date().getTime() - startTime.getTime()}ms`,
+        //   ),
+        // )
       }
+      this.lock = false
     }
   }
 }

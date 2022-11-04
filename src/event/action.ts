@@ -7,7 +7,7 @@ import { config } from '../constant/index.js'
 import { T2ImgConfig, UserConfig } from '../types.js'
 import fetch from 'node-fetch'
 
-const action = (bot: Telegraf<Context<Update>>) => {
+const action = (bot: Telegraf<Context<Update>> ) => {
   bot.action(/.+/, async ctx => {
     const split = ctx.match[0].split('_')
     const userId = ctx.update.callback_query.from.id
@@ -31,21 +31,21 @@ const action = (bot: Telegraf<Context<Update>>) => {
       }
     }
 
-    if (
-      queuingCache.getQueue().find(userConfig => userConfig.id === userId) ||
-      queuingCache
-        .getProcessQueue()
-        .find(userConfig => userConfig.id === userId)
-    ) {
-      console.log(color('error', `previous job not finished`))
-      return ctx.reply(
-        `${
-          ctx.update.callback_query.from.first_name
-            ? ` ${ctx.update.callback_query.from.first_name}`
-            : ''
-        }, your previous job(s) are still on the queue.`,
-      )
-    }
+    // if (
+    //   queuingCache.getQueue().find(userConfig => userConfig.id === userId) ||
+    //   queuingCache
+    //     .getProcessQueue()
+    //     .find(userConfig => userConfig.id === userId)
+    // ) {
+    //   console.log(color('error', `previous job not finished`))
+    //   return ctx.reply(
+    //     `${
+    //       ctx.update.callback_query.from.first_name
+    //         ? ` ${ctx.update.callback_query.from.first_name}`
+    //         : ''
+    //     }, your previous job(s) are still on the queue.`,
+    //   )
+    // }
 
     switch (split[0]) {
       case 'number':
