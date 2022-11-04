@@ -120,7 +120,6 @@ export async function processImg(
   newCache: UserConfig,
   img: { file: string; width: number; height: number } | undefined,
 ) {
-  console.log(color('operation', '......processing image'))
   let img2imgOptions = {}
   if (img) {
     const { width: tempW, height: tempH } = calculateWH(img.width, img.height)
@@ -164,7 +163,7 @@ export async function processImg(
       newCache.first_name ? ` ${newCache.first_name}` : ''
     }\nseed: ${payload.seed} #${index}\ngetconfig ${newCache.configId}`,
   }))
-  console.log(color('operation', '......returning image'))
+  console.log(color('operation', 'returning image......'))
   return medias
 }
 

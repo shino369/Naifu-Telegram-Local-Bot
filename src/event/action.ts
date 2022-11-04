@@ -67,7 +67,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
         console.log(
           color(
             'operation',
-            `......generating image with old prompt but new seed`,
+            `generating image with old prompt but new seed......`,
           ),
         )
         // clicking button again
@@ -143,16 +143,16 @@ const action = (bot: Telegraf<Context<Update>>) => {
           }),
           {},
         ) as T2ImgConfig
-        console.log(
-          color('error', '================ reformatted obj ================='),
-        )
-        console.log(reformated)
-        console.log(
-          color(
-            'operation',
-            '================ reformatted obj =================',
-          ),
-        )
+        // console.log(
+        //   color('error', '================ reformatted obj ================='),
+        // )
+        // console.log(reformated)
+        // console.log(
+        //   color(
+        //     'operation',
+        //     '================ reformatted obj =================',
+        //   ),
+        // )
 
         const newJob: UserConfig = {
           ...ctx.update.callback_query.from,
