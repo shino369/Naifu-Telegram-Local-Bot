@@ -107,7 +107,6 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
 
     if (negative === 'default' || negative === 'long' ||  negative === 'mid' || negative === 'none') {
       writeJsonFileFromPath('./store.json', negativeObj)
-      console.log(negativeObj)
       queuingCache.setNegativeSetting(negative)
       return ctx.reply('Setting applied')
     } else {

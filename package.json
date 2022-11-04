@@ -13,6 +13,7 @@
     "mon": "set NODE_ENV=dev&& nodemon --experimental-specifier-resolution=node ./src/index.ts"
   },
   "dependencies": {
+    "@types/dotenv": "^8.2.0",
     "@types/lodash": "^4.14.186",
     "@types/node": "^18.11.4",
     "chalk": "4.1.2",

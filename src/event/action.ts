@@ -2,26 +2,10 @@ import { queuingCache } from '../index'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { Telegraf } from 'telegraf/typings/telegraf'
-import { color, getRandom, processImg, writeJsonFileFromPath } from '../utils'
+import { color, getRandom, writeJsonFileFromPath } from '../utils'
 import { config } from '../constant'
 import { T2ImgConfig, UserConfig } from 'types'
 import fetch from 'node-fetch'
-
-// async function sendMedia(
-//   bot: Telegraf<Context<Update>>,
-//   userId: number,
-//   number: number,
-//   newCache: UserConfig,
-//   img: { file: string; width: number; height: number } | undefined,
-//   channelId?: number,
-// ) {
-//   //by value to prevent bug
-//   processImg(number, newCache, img).then(img => {
-//     bot.telegram.sendMediaGroup(channelId ? channelId : userId, img)
-//     cache[userId].status = 'idle'
-//     writeJsonFileFromPath('./store.json', cache)
-//   })
-// }
 
 const action = (bot: Telegraf<Context<Update>>) => {
   bot.action(/.+/, async ctx => {
@@ -47,7 +31,12 @@ const action = (bot: Telegraf<Context<Update>>) => {
       }
     }
 
-    if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
+    if (
+      queuingCache.getQueue().find(userConfig => userConfig.id === userId) ||
+      queuingCache
+        .getProcessQueue()
+        .find(userConfig => userConfig.id === userId)
+    ) {
       console.log(color('error', `previous job not finished`))
       return ctx.reply(
         `${
@@ -176,7 +165,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
         writeJsonFileFromPath('./log/log.json', newJob, true)
 
         queuingCache.pushQueue(newJob)
-        queuingCache.setObsNewJob(newJob)
+
         // sendMedia(bot, userId, number, newJob, img, channelId)
         return ctx.answerCbQuery(
           `${number === -1 ? 1 : number} image${
