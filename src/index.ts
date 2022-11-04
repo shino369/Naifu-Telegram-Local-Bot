@@ -64,14 +64,14 @@ async function startBatchJob() {
       console.log(
         color(
           'operation',
-          `........remaining ${queuingCache.getQueue().length} job(s)........`,
+          `........remaining ${queuingCache.getQueue().length - 1} job(s)........`,
         ),
       )
       // delay 5 sec
       await new Promise(resolve => {
         setTimeout(() => {
           resolve(true)
-        }, 5000)
+        }, 10000)
       })
       queuingCache.shiftQueue()
     }
