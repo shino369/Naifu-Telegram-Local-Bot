@@ -32,8 +32,10 @@ const action = (bot: Telegraf<Context<Update>>) => {
     }
 
     if (
-      queuingCache.getQueue().filter(userConfig => userConfig.id === userId)
-        .length > 2
+      queuingCache.getQueue().find(userConfig => userConfig.id === userId) ||
+      queuingCache
+        .getProcessQueue()
+        .find(userConfig => userConfig.id === userId)
     ) {
       console.log(color('error', `previous job not finished`))
       return ctx.reply(
@@ -163,7 +165,7 @@ const action = (bot: Telegraf<Context<Update>>) => {
         writeJsonFileFromPath('./log/log.json', newJob, true)
 
         queuingCache.pushQueue(newJob)
-        queuingCache.setObsNewJob(newJob)
+
         // sendMedia(bot, userId, number, newJob, img, channelId)
         return ctx.answerCbQuery(
           `${number === -1 ? 1 : number} image${
