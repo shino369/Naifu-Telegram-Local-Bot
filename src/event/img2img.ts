@@ -1,4 +1,4 @@
-import { queuingCache } from '../index'
+import { queuingCache } from '../index.js'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { Telegraf } from 'telegraf/typings/telegraf'
@@ -9,9 +9,8 @@ import {
   getInlinKeyboard,
   returnImg2ImgDefaultWithNewSeed,
   validate,
-  writeJsonFileFromPath,
-} from '../utils'
-import { T2ImgConfig, UserConfig } from 'types'
+} from '../utils/index.js'
+import { T2ImgConfig, UserConfig } from '../types.js'
 
 const PROMPT = 'prompt'
 

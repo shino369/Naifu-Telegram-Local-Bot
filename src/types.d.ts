@@ -1,4 +1,4 @@
-export * from './interface/index'
+export * from './interface/index.js'
 
 declare global {
   namespace NodeJS {

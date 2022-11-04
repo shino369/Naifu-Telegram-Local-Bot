@@ -1,27 +1,11 @@
-import { queuingCache } from '../index'
+import { queuingCache } from '../index.js'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { Telegraf } from 'telegraf/typings/telegraf'
-import { color, getRandom, processImg, writeJsonFileFromPath } from '../utils'
-import { config } from '../constant'
-import { T2ImgConfig, UserConfig } from 'types'
+import { color, getRandom, writeJsonFileFromPath } from '../utils/index.js'
+import { config } from '../constant/index.js'
+import { T2ImgConfig, UserConfig } from '../types.js'
 import fetch from 'node-fetch'
-
-// async function sendMedia(
-//   bot: Telegraf<Context<Update>>,
-//   userId: number,
-//   number: number,
-//   newCache: UserConfig,
-//   img: { file: string; width: number; height: number } | undefined,
-//   channelId?: number,
-// ) {
-//   //by value to prevent bug
-//   processImg(number, newCache, img).then(img => {
-//     bot.telegram.sendMediaGroup(channelId ? channelId : userId, img)
-//     cache[userId].status = 'idle'
-//     writeJsonFileFromPath('./store.json', cache)
-//   })
-// }
 
 const action = (bot: Telegraf<Context<Update>>) => {
   bot.action(/.+/, async ctx => {

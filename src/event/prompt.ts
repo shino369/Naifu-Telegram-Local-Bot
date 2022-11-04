@@ -1,8 +1,8 @@
-import { queuingCache } from '../index'
+import { queuingCache } from '../index.js'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { Telegraf } from 'telegraf/typings/telegraf'
-import { T2ImgConfig, UserConfig } from 'types'
+import { T2ImgConfig, UserConfig } from '../types.js'
 import {
   writeJsonFileFromPath,
   getEditmsgStr,
@@ -11,7 +11,7 @@ import {
   color,
   validate,
   getconfigById,
-} from '../utils'
+} from '../utils/index.js'
 
 const PROMPT = 'prompt'
 const GETCONFIG = 'getconfig'

@@ -1,6 +1,5 @@
 import fs from 'fs'
-import moment from 'moment'
-import { color } from './functions'
+import { color } from './functions.js'
 
 export function getJsonFileFromPath(filePath: string) {
   let newJson

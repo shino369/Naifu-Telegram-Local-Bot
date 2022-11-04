@@ -1,12 +1,12 @@
 import chalk from 'chalk'
-import { config } from '../constant'
+import { config } from '../constant/index.js'
 import fetch from 'node-fetch'
-import { FileRes, Payload, UserConfig } from 'types'
+import { FileRes, Payload, UserConfig } from '../types.js'
 import moment from 'moment'
 import { Markup } from 'telegraf'
 import { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import _ from 'lodash'
-import { queuingCache } from '../index'
+import { queuingCache } from '../index.js'
 
 type colorType = 'text' | 'variable' | 'error' | 'operation'
 

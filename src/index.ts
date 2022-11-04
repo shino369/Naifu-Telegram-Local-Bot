@@ -1,10 +1,8 @@
-import { color } from './utils/functions'
 import dotenv from 'dotenv'
-import { Store } from './store'
+import { Store } from './store.js'
 import { Telegraf } from 'telegraf'
-
-import { prompt, img2img, action } from './event'
-import { getJsonFileFromPath, processImg } from './utils'
+import { prompt, img2img, action } from './event/index.js'
+import { getJsonFileFromPath, processImg, color } from './utils/index.js'
 
 dotenv.config()
 export const queuingCache = new Store()

@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable, Subject } from 'rxjs'
-import { UserConfig } from 'types'
+import { UserConfig } from './types.js'
 
 export class Store {
   private queue: UserConfig[]

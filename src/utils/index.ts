@@ -1,2 +1,2 @@
-export * from './fileIO'
-export * from './functions'
+export * from './fileIO.js'
+export * from './functions.js'
