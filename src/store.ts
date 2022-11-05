@@ -29,7 +29,12 @@ export class Store {
         this.lock = true
         this.startBatchJob()
       } else {
-        console.log(color('error', 'image processer is still running, no need to restart'))
+        console.log(
+          color(
+            'error',
+            'image processer is still running, no need to restart',
+          ),
+        )
       }
     })
 
@@ -94,7 +99,6 @@ export class Store {
   }
 
   private async startBatchJob() {
-    // no current running jobs
     if (this.processQueue.length === 0) {
       while (this.queue.length > 0) {
         console.log(color('operation', 'processing image......'))
@@ -108,42 +112,67 @@ export class Store {
         // console.log(job)
         const img = await processImg(job.number, job, job.img)
         const endTime = new Date()
-        console.log(
-          color(
-            'variable',
-            `${job.number} image(s) finished in ${endTime.getTime() - startTime.getTime()}ms`,
-          ),
-        )
-        this.bot.telegram.sendMediaGroup(
-          job.channelId ? job.channelId : job.id,
-          img,
-          {
-            reply_to_message_id: job.messageId,
-          },
-        )
+
+        const replyToMsgObj = {
+          reply_to_message_id: job.messageId,
+        }
+
+        // success
+
+        if (typeof img !== 'string' && img.length > 0) {
+          console.log(
+            color(
+              'variable',
+              `${job.number} image(s) finished in ${
+                endTime.getTime() - startTime.getTime()
+              }ms`,
+            ),
+          )
+
+          try {
+            this.bot.telegram.sendMediaGroup(
+              job.channelId ? job.channelId : job.id,
+              img,
+              replyToMsgObj,
+            )
+          } catch (e) {
+            console.log(e)
+            this.bot.telegram.sendMediaGroup(
+              job.channelId ? job.channelId : job.id,
+              img,
+            )
+          }
+        } else {
+          try {
+            this.bot.telegram.sendMessage(
+              job.channelId ? job.channelId : job.id,
+              `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
+              replyToMsgObj,
+            )
+          } catch (e) {
+            console.log(e)
+            this.bot.telegram.sendMessage(
+              job.channelId ? job.channelId : job.id,
+              `${img}: job of generating ${job.number} image(s) created by ${job.first_name} failed`,
+            )
+          }
+        }
 
         // remove from process queue
         this.shiftprocessQueue()
-        
+
         console.log(
-          color(
-            'operation',
-            `remaining ${this.queue.length} job(s)......`,
-          ),
+          color('operation', `remaining ${this.queue.length} job(s)......`),
         )
 
         // if still have remaining job, delay before next loop
-        if(this.queue.length > 0) {
+        if (this.queue.length > 0) {
           await this.delay(15000)
         }
-        // console.log(
-        //   color(
-        //     'variable',
-        //     `added delay to ${new Date().getTime() - startTime.getTime()}ms`,
-        //   ),
-        // )
       }
       this.lock = false
     }
+
+    // no current running jobs
   }
 }

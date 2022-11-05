@@ -33,8 +33,8 @@ export const config: Config = {
     },
     square: {
       medium: {
-        height: 512,
-        width: 512,
+        height: 640,
+        width: 640,
       },
       large: {
         height: 1024,

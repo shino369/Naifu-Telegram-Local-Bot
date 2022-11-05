@@ -5,7 +5,7 @@ import { FileRes, Payload, UserConfig } from '../types.js'
 import moment from 'moment'
 import { Markup } from 'telegraf'
 import { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
-import _ from 'lodash'
+import _, { indexOf } from 'lodash'
 import { queuingCache } from '../index.js'
 
 type colorType = 'text' | 'variable' | 'error' | 'operation'
@@ -120,51 +120,61 @@ export async function processImg(
   newCache: UserConfig,
   img: { file: string; width: number; height: number } | undefined,
 ) {
-  let img2imgOptions = {}
-  if (img) {
-    const { width: tempW, height: tempH } = calculateWH(img.width, img.height)
-    img2imgOptions = {
-      strength: parseFloat(newCache.config.strength),
-      noise: parseFloat(newCache.config.noise),
-      image: img.file,
-      width: tempW,
-      height: tempH,
+  let medias: InputMediaPhoto[] | string = []
+  try {
+    let img2imgOptions = {}
+    if (img) {
+      const { width: tempW, height: tempH } = calculateWH(img.width, img.height)
+      img2imgOptions = {
+        strength: parseFloat(newCache.config.strength),
+        noise: parseFloat(newCache.config.noise),
+        image: img.file,
+        width: tempW,
+        height: tempH,
+      }
+    } else {
+      img2imgOptions = {
+        width:
+          config.sizeMapper[newCache.config.orientation][newCache.config.size]
+            .width,
+        height:
+          config.sizeMapper[newCache.config.orientation][newCache.config.size]
+            .height,
+      }
     }
-  } else {
-    img2imgOptions = {
-      width:
-        config.sizeMapper[newCache.config.orientation][newCache.config.size]
-          .width,
-      height:
-        config.sizeMapper[newCache.config.orientation][newCache.config.size]
-          .height,
+    const payload: Payload = {
+      prompt: newCache.config.positive!,
+      scale: parseInt(newCache.config.scale),
+      sampler: 'k_euler_ancestral',
+      steps: parseInt(newCache.config.steps),
+      seed: parseInt(newCache.config.seed),
+      n_samples: num,
+      ucPreset: 0,
+      uc: newCache.config.negative,
+      width: 0, //temp
+      height: 0, //temp
+      ...img2imgOptions,
     }
-  }
-  const payload: Payload = {
-    prompt: newCache.config.positive!,
-    scale: parseInt(newCache.config.scale),
-    sampler: 'k_euler_ancestral',
-    steps: parseInt(newCache.config.steps),
-    seed: parseInt(newCache.config.seed),
-    n_samples: num,
-    ucPreset: 0,
-    uc: newCache.config.negative,
-    width: 0, //temp
-    height: 0, //temp
-    ...img2imgOptions,
-  }
-  console.log(_.omit(payload, ['uc', 'image']))
-  const files = await getImageResult(payload)
+    console.log(_.omit(payload, ['uc', 'image']))
+    const files = await getImageResult(payload)
 
-  const medias: InputMediaPhoto[] = files.map((file, index) => ({
-    type: 'photo',
-    media: { source: file.image },
-    caption: `Created by${
-      newCache.first_name ? ` ${newCache.first_name}` : ''
-    }\nseed: ${payload.seed} #${index}\ngetconfig ${newCache.configId}`,
-  }))
-  console.log(color('operation', 'returning image......'))
-  return medias
+    medias = files.map((file, index) => ({
+      type: 'photo',
+      media: { source: file.image },
+      caption: `Created by${
+        newCache.first_name ? ` ${newCache.first_name}` : ''
+      }\nseed: ${payload.seed} #${index}\ngetconfig ${newCache.configId}`,
+    }))
+    console.log(color('operation', 'returning image......'))
+  } catch (e) {
+    console.log(color('error', `Error: job process failed`))
+    console.log(e)
+    const error = e.toString()
+    console.log(error)
+    medias = error.substring(0, error.indexOf(':'))
+  } finally {
+    return medias
+  }
 }
 
 export function calculateWH(width: number, height: number) {
@@ -221,7 +231,7 @@ export const validate = (key: string, match: string) => {
   const str = match.substring(key.length + 1).trim()
   switch (key) {
     case 'orientation':
-      if (!['portrait', 'landscape'].includes(str.toLowerCase())) {
+      if (!['portrait', 'landscape', 'square'].includes(str.toLowerCase())) {
         return false
       }
       return true

@@ -50,7 +50,9 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
       ]
 
       settingKeys.forEach(key => {
-        const match = inputArr.find(f => f.includes(`${key}:`))
+        const match = inputArr.find(f =>
+          f.toUpperCase().includes(`${key.toUpperCase()}:`),
+        )
         if (match) {
           if (!validate(key, match)) {
             console.log(color('error', `wrong format for ${key}`))
