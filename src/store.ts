@@ -119,43 +119,53 @@ export class Store {
 
         // success
 
-        if (typeof img !== 'string' && img.length > 0) {
-          console.log(
-            color(
-              'variable',
-              `${job.number} image(s) finished in ${
-                endTime.getTime() - startTime.getTime()
-              }ms`,
-            ),
-          )
+        try {
+          if (typeof img !== 'string' && img.length > 0) {
+            console.log(
+              color(
+                'variable',
+                `${job.number} image(s) finished in ${
+                  endTime.getTime() - startTime.getTime()
+                }ms`,
+              ),
+            )
 
-          try {
-            this.bot.telegram.sendMediaGroup(
-              job.channelId ? job.channelId : job.id,
-              img,
-              replyToMsgObj,
-            )
-          } catch (e) {
-            console.log(e)
-            this.bot.telegram.sendMediaGroup(
-              job.channelId ? job.channelId : job.id,
-              img,
-            )
+            this.bot.telegram
+              .sendMediaGroup(
+                job.channelId ? job.channelId : job.id,
+                img,
+                replyToMsgObj,
+              )
+              .catch(error => {
+                console.log(color('error', 'error sending reply'))
+                console.log(error)
+                setTimeout(() => {
+                  this.bot.telegram.sendMediaGroup(
+                    job.channelId ? job.channelId : job.id,
+                    img,
+                  )
+                }, 3000)
+              })
+          } else {
+            this.bot.telegram
+              .sendMessage(
+                job.channelId ? job.channelId : job.id,
+                `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
+                replyToMsgObj,
+              )
+              .catch(error => {
+                console.log(color('error', 'error sending reply'))
+                console.log(error)
+                setTimeout(() => {
+                  this.bot.telegram.sendMessage(
+                    job.channelId ? job.channelId : job.id,
+                    `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
+                  )
+                }, 3000)
+              })
           }
-        } else {
-          try {
-            this.bot.telegram.sendMessage(
-              job.channelId ? job.channelId : job.id,
-              `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
-              replyToMsgObj,
-            )
-          } catch (e) {
-            console.log(e)
-            this.bot.telegram.sendMessage(
-              job.channelId ? job.channelId : job.id,
-              `${img}: job of generating ${job.number} image(s) created by ${job.first_name} failed`,
-            )
-          }
+        } catch (e) {
+          console.log(color('error', 'error sendinf reply'))
         }
 
         // remove from process queue
