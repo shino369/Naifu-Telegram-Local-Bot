@@ -34,11 +34,11 @@ export const config: Config = {
     square: {
       medium: {
         height: 640,
-        width: 640,
+        width: 768,
       },
       large: {
-        height: 1024,
-        width: 1024,
+        height: 960,
+        width: 960,
       },
       small: {
         height: 512,
