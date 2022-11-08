@@ -115,11 +115,11 @@ export const getInlinKeyboard = () => {
   }
 }
 
-export async function processImg(
+export const processImg = async (
   num: number,
   newCache: UserConfig,
   img: { file: string; width: number; height: number } | undefined,
-) {
+) => {
   let medias: InputMediaPhoto[] | string = []
   try {
     let img2imgOptions = {}
@@ -177,7 +177,7 @@ export async function processImg(
   }
 }
 
-export function calculateWH(width: number, height: number) {
+export const calculateWH = (width: number, height: number) => {
   // calculate WH
   let tempW = Math.floor(width / 64) * 64
   let tempH = Math.floor(height / 64) * 64
@@ -266,5 +266,24 @@ export const validate = (key: string, match: string) => {
       return true
     default:
       return true
+  }
+}
+
+export const calculateWeight = (props: UserConfig) => {
+  if (props.img) {
+    return (
+      (props.img.width * props.img.height) / (1024 * 1024) +
+      parseInt(props.config.scale) / 25 +
+      parseInt(props.config.steps) / 50 +
+      (parseFloat(props.config.strength) + parseFloat(props.config.noise)) * 1.2
+    )
+  } else {
+    return (
+      (config.sizeMapper[props.config.orientation][props.config.size].width *
+        config.sizeMapper[props.config.orientation][props.config.size].height) /
+        (1024 * 1024) +
+      parseInt(props.config.scale) / 25 +
+      parseInt(props.config.steps) / 50
+    )
   }
 }

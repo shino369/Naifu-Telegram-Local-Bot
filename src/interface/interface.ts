@@ -76,6 +76,10 @@ export interface FileRes {
   image: any
 }
 
+export interface QueueInstance extends UserConfig {
+  weight: number
+}
+
 export interface UserConfig extends User {
   status: string
   number: number

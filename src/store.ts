@@ -1,12 +1,13 @@
 import { Subject, Subscription } from 'rxjs'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
-import { NegativeStr, UserConfig } from './types.js'
+import { NegativeStr, QueueInstance, UserConfig } from './types.js'
 import { color, getJsonFileFromPath, processImg } from './utils/index.js'
 import { Telegraf } from 'telegraf/typings/telegraf'
+import fetch from 'node-fetch'
 
 export class Store {
-  private queue: UserConfig[]
+  private queue: QueueInstance[]
   private processQueue: UserConfig[]
   private obsNewJob$: Subject<UserConfig>
   private obsNewJobSub: Subscription
@@ -24,6 +25,9 @@ export class Store {
     console.log(color('operation', `using negative: ${this.negativeSetting}`))
 
     this.obsNewJobSub = this.obsNewJob$.subscribe(_newJob => {
+      // sort by weight
+      this.queue = this.queue.sort((a,b) => a.weight - b.weight)
+
       // if idle
       if (!this.lock) {
         this.lock = true
@@ -68,7 +72,7 @@ export class Store {
   }
 
   // new incoming job received
-  public pushQueue(userconfig: UserConfig) {
+  public pushQueue(userconfig: QueueInstance) {
     this.queue.push(userconfig)
     // trigger event
     this.obsNewJob$.next(userconfig)
@@ -110,13 +114,24 @@ export class Store {
         // push to process queue
         this.pushprocessQueue(job)
         // console.log(job)
+
+        // fetch the actual image if img2img
+        if (job.img) {
+          const res = await fetch(job.img.file)
+          const bff = await res.buffer()
+          job.img = {
+            ...job.img,
+            file: bff.toString('base64'),
+          }
+        }
+
         const img = await processImg(job.number, job, job.img)
         const endTime = new Date()
 
         const replyToMsgObj = {
           reply_to_message_id: job.messageId,
         }
-
+ 
         // success
 
         try {

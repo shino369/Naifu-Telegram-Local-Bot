@@ -2,9 +2,9 @@ import { queuingCache } from '../index.js'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { Telegraf } from 'telegraf/typings/telegraf'
-import { color, getRandom, writeJsonFileFromPath } from '../utils/index.js'
+import { calculateWeight, color, getRandom, writeJsonFileFromPath } from '../utils/index.js'
 import { config } from '../constant/index.js'
-import { T2ImgConfig, UserConfig } from '../types.js'
+import { QueueInstance, T2ImgConfig, UserConfig } from '../types.js'
 import fetch from 'node-fetch'
 
 const action = (bot: Telegraf<Context<Update>> ) => {
@@ -21,11 +21,8 @@ const action = (bot: Telegraf<Context<Update>> ) => {
       const photos = (ctx.update.callback_query.message as any)['photo']
       photo = photos[photos.length - 1]
       url = await bot.telegram.getFileLink(photo.file_id as string)
-      const res = await fetch(url.toString())
-      const bff = await res.buffer()
-
       img = {
-        file: bff.toString('base64'),
+        file: url.toString(),
         width: photo.width,
         height: photo.height,
       }
@@ -161,10 +158,15 @@ const action = (bot: Telegraf<Context<Update>> ) => {
           newJob['channelId'] = channelId
         }
 
+        const addedWeight: QueueInstance = {
+          ...newJob,
+          weight: calculateWeight(newJob),
+        }
+
         // write log
         writeJsonFileFromPath('./log/log.json', newJob, true)
 
-        queuingCache.pushQueue(newJob)
+        queuingCache.pushQueue(addedWeight)
 
         // sendMedia(bot, userId, number, newJob, img, channelId)
         return ctx.answerCbQuery(
