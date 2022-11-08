@@ -1,3 +1,4 @@
+import { config } from '../constant/config.js';
 import { queuingCache } from '../index.js'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
@@ -16,6 +17,7 @@ import {
 const PROMPT = 'prompt'
 const GETCONFIG = 'getconfig'
 const SETNEGATIVE = 'negative'
+const GETNEGATIVE = 'getnegative'
 
 const prompt = (bot: Telegraf<Context<Update>>) => {
   bot.command(PROMPT, async ctx => {
@@ -109,6 +111,16 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
       writeJsonFileFromPath('./store.json', negativeObj)
       queuingCache.setNegativeSetting(negative)
       return ctx.reply('Setting applied')
+    } else {
+      return ctx.reply(`Error: negative with string: [${negative}] not found`)
+    }
+  })
+
+  bot.command(GETNEGATIVE, async ctx => {
+    const negative = ctx.message.text.substring(GETNEGATIVE.length + 1).trim()
+    
+    if (negative === 'default' || negative === 'long' ||  negative === 'mid' || negative === 'none') {
+      return ctx.reply(config.default.negative[negative])
     } else {
       return ctx.reply(`Error: negative with string: [${negative}] not found`)
     }
