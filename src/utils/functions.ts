@@ -271,19 +271,30 @@ export const validate = (key: string, match: string) => {
 
 export const calculateWeight = (props: UserConfig) => {
   if (props.img) {
-    return (
-      (props.img.width * props.img.height) / (1024 * 1024) +
-      parseInt(props.config.scale) / 25 +
-      parseInt(props.config.steps) / 50 +
-      (parseFloat(props.config.strength) + parseFloat(props.config.noise)) * 1.2
+    console.log(
+      parseFloat(props.config.strength),
+      parseFloat(props.config.noise),
+    )
+    return Math.floor(
+      ((props.img.width * props.img.height) / (1024 * 1024) +
+        (props.config.positive.length + props.config.negative.length) / 1000 +
+        parseInt(props.config.scale) / 25 +
+        parseInt(props.config.steps) / 50 +
+        (parseFloat(props.config.strength) + parseFloat(props.config.noise)) *
+          1.2) *
+        props.number *
+        10,
     )
   } else {
-    return (
-      (config.sizeMapper[props.config.orientation][props.config.size].width *
+    return Math.floor(
+      ((config.sizeMapper[props.config.orientation][props.config.size].width *
         config.sizeMapper[props.config.orientation][props.config.size].height) /
         (1024 * 1024) +
-      parseInt(props.config.scale) / 25 +
-      parseInt(props.config.steps) / 50
+        (props.config.positive.length + props.config.negative.length) / 1000 +
+        parseInt(props.config.scale) / 25 +
+        parseInt(props.config.steps) / 50) *
+        props.number *
+        10,
     )
   }
 }
