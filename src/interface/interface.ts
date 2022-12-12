@@ -24,7 +24,7 @@ export interface Options {
 
 export type Orientation = 'portrait' | 'landscape' | 'square'
 
-export type Size = 'small' | 'medium' | 'large'
+export type Size = 'small' | 'medium' | 'large' | 'big' | 'big2'
 
 export interface Config {
   generateImageURL: string

@@ -7,6 +7,11 @@ import { Markup } from 'telegraf'
 import { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import _, { indexOf } from 'lodash'
 import { queuingCache } from '../index.js'
+import find from 'find-process'
+import process from 'process'
+import { exec, execSync } from 'child_process'
+// @ts-ignore
+import { encode } from 'gpt-3-encoder';
 
 type colorType = 'text' | 'variable' | 'error' | 'operation'
 
@@ -145,7 +150,10 @@ export const processImg = async (
     const payload: Payload = {
       prompt: newCache.config.positive!,
       scale: parseInt(newCache.config.scale),
-      sampler: 'k_euler_ancestral',
+      sampler:
+        queuingCache.getSamling() === 'ddim' && img
+          ? 'k_euler_ancestral'
+          : queuingCache.getSamling(),
       steps: parseInt(newCache.config.steps),
       seed: parseInt(newCache.config.seed),
       n_samples: num,
@@ -236,7 +244,7 @@ export const validate = (key: string, match: string) => {
       }
       return true
     case 'size':
-      if (!['small', 'medium', 'large'].includes(str.toLowerCase())) {
+      if (!['small', 'medium', 'large', 'big', 'big2'].includes(str.toLowerCase())) {
         return false
       }
       return true
@@ -297,4 +305,71 @@ export const calculateWeight = (props: UserConfig) => {
         10,
     )
   }
+}
+
+export const findProcess = (type: 'name' | 'pid' | 'port', name: string) => {
+  return find(type, name)
+}
+
+export const switchModel = async (name: string) => {
+  let response: { [key: string]: string } = {}
+  try {
+    const returnStr: string = await new Promise((resolve, reject) => {
+      // find('name', 'cmd.exe').then(
+      //   res => {
+      //     const target = res.find(arr => arr.cmd.includes('/K start'))
+      //     console.log(res)
+      //     if (target) {
+      //       process.kill(target.pid)
+      //     }
+
+      //     find('port', 6969).then(
+      //       py => {
+      //         process.kill(py[0].pid)
+      //         setTimeout(() => {
+      //           console.log(color('operation', `trying to start ${name}.bat...`))
+      //           exec(`start cmd.exe /K start_${name}.bat`)
+
+      //           resolve('model switched to ' + name)
+      //         }, 5000)
+      //       },
+      //       err => {
+      //         console.log(err)
+      //       }
+      //     )
+      //   },
+      //   err => {
+      //     console.log(err)
+      //     reject('error occur')
+      //   },
+      // )
+      fetch(process.env.BASE_URL + '/change-path', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name,
+        }),
+      }).then(
+        async res => {
+          const text = await res.text()
+          resolve(text)
+        },
+        err => {
+          reject(err)
+        },
+      )
+    })
+    response = JSON.parse(returnStr)
+  } catch (e) {
+    response = { error: `Error: ${e}` }
+  } finally {
+    return response
+  }
+}
+
+export const getToken = (str: string) =>{
+  return (encode(str)).length
 }

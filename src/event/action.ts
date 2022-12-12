@@ -9,6 +9,11 @@ import fetch from 'node-fetch'
 
 const action = (bot: Telegraf<Context<Update>> ) => {
   bot.action(/.+/, async ctx => {
+    if(queuingCache.getModelSwitching()) {
+      return ctx.answerCbQuery(
+        `Please wait for model switching finish`,
+      )
+    }
     const split = ctx.match[0].split('_')
     const userId = ctx.update.callback_query.from.id
     const channelId = ctx.update.callback_query.message?.chat.id

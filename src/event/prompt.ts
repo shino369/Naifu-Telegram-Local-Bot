@@ -1,4 +1,4 @@
-import { config } from '../constant/config.js';
+import { config } from '../constant/config.js'
 import { queuingCache } from '../index.js'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
@@ -12,12 +12,18 @@ import {
   color,
   validate,
   getconfigById,
+  switchModel,
+  findProcess,
+  getToken,
 } from '../utils/index.js'
 
 const PROMPT = 'prompt'
 const GETCONFIG = 'getconfig'
 const SETNEGATIVE = 'negative'
 const GETNEGATIVE = 'getnegative'
+const CHANGE = 'change'
+const CURRENT = 'current'
+const SAMPLE = 'sample'
 
 const prompt = (bot: Telegraf<Context<Update>>) => {
   bot.command(PROMPT, async ctx => {
@@ -83,7 +89,14 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
 
     // write log
     // writeJsonFileFromPath('./log/log.json', newJob, true)
-
+    let str = newJob.config.positive
+    const arrs = ['{','}','[',']']
+    arrs.map((arr) => {
+        str =  str.replaceAll(arr,'')
+        return
+    })
+    const tokens = getToken(str)
+    console.log(tokens)
     return ctx.reply(getEditmsgStr(newJob), {
       reply_markup: getInlinKeyboard(),
     })
@@ -105,9 +118,17 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
 
   bot.command(SETNEGATIVE, async ctx => {
     const negative = ctx.message.text.substring(SETNEGATIVE.length + 1).trim()
-    const negativeObj = { negative: negative }
+    const negativeObj = {
+      negative: negative,
+      model: queuingCache.getCurrentModel(),
+    }
 
-    if (negative === 'default' || negative === 'long' ||  negative === 'mid' || negative === 'none') {
+    if (
+      negative === 'default' ||
+      negative === 'long' ||
+      negative === 'mid' ||
+      negative === 'none'
+    ) {
       writeJsonFileFromPath('./store.json', negativeObj)
       queuingCache.setNegativeSetting(negative)
       return ctx.reply('Setting applied')
@@ -118,13 +139,60 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
 
   bot.command(GETNEGATIVE, async ctx => {
     const negative = ctx.message.text.substring(GETNEGATIVE.length + 1).trim()
-    
-    if (negative === 'default' || negative === 'long' ||  negative === 'mid' || negative === 'none') {
+
+    if (
+      negative === 'default' ||
+      negative === 'long' ||
+      negative === 'mid' ||
+      negative === 'none'
+    ) {
       return ctx.reply(config.default.negative[negative])
     } else {
       return ctx.reply(`Error: negative with string: [${negative}] not found`)
     }
   })
+
+  bot.command(CHANGE, async ctx => {
+    const modelName = ctx.message.text.substring(CHANGE.length + 1).trim()
+    queuingCache.switchModelByName(modelName, ctx.message.chat.id)
+
+    return ctx.reply('Switching model... Please wait...')
+  })
+
+  bot.command(SAMPLE, async ctx => {
+    const samplingStr = ctx.message.text.substring(SAMPLE.length + 1).trim()
+    if (samplingStr.length === 1) {
+      const sampling = parseInt(samplingStr[0])
+      const samp = queuingCache.setSampling(sampling)
+
+      return ctx.reply(`Sampling set to ${samp}`)
+    } else {
+      return ctx.reply(
+        `Wrong format. Available: 0 - k_euler_ancestral | 1 - k_euler | 2 - ddim`,
+      )
+    }
+  })
+
+  // bot.command(CURRENT, async ctx => {
+  //   findProcess('name', 'cmd.exe').then(
+  //     res => {
+  //       const target = res.find(arr => arr.cmd.includes('/K start'))
+  //       if (target) {
+  //         return ctx.reply(target.cmd)
+  //       } else {
+  //         return ctx.reply('no process running')
+  //       }
+  //     },
+  //     err => {
+  //       return ctx.reply('Error: cmd not found')
+  //     },
+  //   )
+  //   // if (negative === 'default' || negative === 'long' ||  negative === 'mid' || negative === 'none') {
+  //   //   return ctx.reply(config.default.negative[negative])
+  //   // } else {
+  //   //   return ctx.reply(`Error: negative with string: [${negative}] not found`)
+  //   // }
+  // })
 }
 
 export default prompt

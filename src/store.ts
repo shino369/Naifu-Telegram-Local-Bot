@@ -2,7 +2,13 @@ import { Subject, Subscription } from 'rxjs'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { NegativeStr, QueueInstance, UserConfig } from './types.js'
-import { color, getJsonFileFromPath, processImg } from './utils/index.js'
+import {
+  color,
+  getJsonFileFromPath,
+  processImg,
+  switchModel,
+  writeJsonFileFromPath,
+} from './utils/index.js'
 import { Telegraf } from 'telegraf/typings/telegraf'
 import fetch from 'node-fetch'
 
@@ -14,6 +20,9 @@ export class Store {
   private negativeSetting: string
   private bot: Telegraf<Context<Update>>
   private lock: boolean
+  private modelSwitching: boolean
+  private currentModel: string
+  private sampling: string
 
   constructor(bot: Telegraf<Context<Update>>) {
     this.bot = bot
@@ -21,13 +30,23 @@ export class Store {
     this.processQueue = []
     this.obsNewJob$ = new Subject<UserConfig>()
     this.lock = false
-    this.negativeSetting = getJsonFileFromPath('./store.json').negative
-    console.log(color('operation', `using negative: ${this.negativeSetting}`))
-
+    this.modelSwitching = false
+    const stored = getJsonFileFromPath('./store.json')
+    this.negativeSetting = stored.negative
+    this.currentModel = 'aything' //default
+    this.sampling = stored.sampling
+    console.log(
+      color(
+        'operation',
+        `using negative: ${this.negativeSetting}, using model: ${this.currentModel}, sampling: ${this.sampling}`,
+      ),
+    )
     this.obsNewJobSub = this.obsNewJob$.subscribe(_newJob => {
       // sort by weight
-      this.queue = this.queue.sort((a,b) => a.weight - b.weight)
-
+      this.queue = this.queue.sort((a, b) => a.weight - b.weight)
+      // console.log(color('text', '=================start of queue============='))
+      // console.log(this.queue)
+      // console.log(color('text', '==================end of queue=============='))
       // if idle
       if (!this.lock) {
         this.lock = true
@@ -53,6 +72,14 @@ export class Store {
     if (arguement) {
       this.bot.stop(arguement)
     }
+  }
+
+  public setModelSwitching(isSwitvhing: boolean) {
+    this.modelSwitching = isSwitvhing
+  }
+
+  public getModelSwitching() {
+    return this.modelSwitching
   }
 
   public getQueue() {
@@ -102,6 +129,33 @@ export class Store {
     })
   }
 
+  public getCurrentModel() {
+    return this.currentModel
+  }
+
+  public getSamling() {
+    return this.sampling
+  }
+
+  public setSampling(sampling: number) {
+    switch (sampling) {
+      case 0:
+        this.sampling = 'k_euler_ancestral'
+        break
+      case 1:
+        this.sampling = 'k_euler'
+        break
+      case 2:
+        this.sampling = 'ddim'
+        break
+    }
+    writeJsonFileFromPath('./store.json', {
+      negative: this.negativeSetting,
+      sampling: this.sampling,
+    })
+    return this.sampling
+  }
+
   private async startBatchJob() {
     if (this.processQueue.length === 0) {
       while (this.queue.length > 0) {
@@ -131,7 +185,7 @@ export class Store {
         const replyToMsgObj = {
           reply_to_message_id: job.messageId,
         }
- 
+
         // success
 
         try {
@@ -155,10 +209,11 @@ export class Store {
                 console.log(color('error', 'error sending reply'))
                 console.log(error)
                 setTimeout(() => {
-                  this.bot.telegram.sendMediaGroup(
-                    job.channelId ? job.channelId : job.id,
-                    img,
-                  )
+                  this.bot.telegram
+                    .sendMediaGroup(job.channelId ? job.channelId : job.id, img)
+                    .catch(error => {
+                      console.log(color('error', 'error sending reply'))
+                    })
                 }, 3000)
               })
           } else {
@@ -180,7 +235,7 @@ export class Store {
               })
           }
         } catch (e) {
-          console.log(color('error', 'error sendinf reply'))
+          console.log(color('error', 'error sending reply'))
         }
 
         // remove from process queue
@@ -199,5 +254,19 @@ export class Store {
     }
 
     // no current running jobs
+  }
+
+  public async switchModelByName(name: string, chatId: number) {
+    this.setModelSwitching(true)
+    switchModel(name).then((res: { [key: string]: string }) => {
+      if (res.error) {
+        this.bot.telegram.sendMessage(chatId, res.error)
+      } else {
+        this.currentModel = name
+        this.bot.telegram.sendMessage(chatId, res.content)
+      }
+
+      this.setModelSwitching(false)
+    })
   }
 }
