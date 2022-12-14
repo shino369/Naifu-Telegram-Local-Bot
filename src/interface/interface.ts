@@ -24,7 +24,7 @@ export interface Options {
 
 export type Orientation = 'portrait' | 'landscape' | 'square'
 
-export type Size = 'small' | 'medium' | 'large'
+export type Size = 'small' | 'medium' | 'large' | 'big' | 'big2'
 
 export interface Config {
   generateImageURL: string
@@ -76,6 +76,10 @@ export interface FileRes {
   image: any
 }
 
+export interface QueueInstance extends UserConfig {
+  weight: number
+}
+
 export interface UserConfig extends User {
   status: string
   number: number
@@ -101,3 +105,14 @@ export interface T2ImgConfig {
   noise: string
   seed: string
 }
+
+export type NegativeStr = 'default' | 'long' | 'none' | 'mid'
+
+
+// store.ts
+
+export type GetQueue = () => UserConfig[]
+export type GetProcessQueue = () => UserConfig[]
+export type GetNegativeSetting = () => string
+export type SetNegativeSetting = (value: string) => void
+export type PushQueue = (value: UserConfig) => void

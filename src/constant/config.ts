@@ -16,6 +16,14 @@ export const config: Config = {
         height: 640,
         width: 384,
       },
+      big: {
+        height: 960,
+        width: 640,
+      },
+      big2: {
+        height: 960,
+        width: 512,
+      }
     },
     landscape: {
       medium: {
@@ -30,11 +38,19 @@ export const config: Config = {
         height: 384,
         width: 640,
       },
+      big: {
+        height: 640,
+        width: 960,
+      },
+      big2: {
+        height: 512,
+        width: 960,
+      }
     },
     square: {
       medium: {
-        height: 512,
-        width: 512,
+        height: 640,
+        width: 768,
       },
       large: {
         height: 1024,
@@ -44,6 +60,14 @@ export const config: Config = {
         height: 512,
         width: 512,
       },
+      big: {
+        height: 960,
+        width: 960,
+      },
+      big2: {
+        height: 768,
+        width: 768,
+      }
     },
   },
   default: {
