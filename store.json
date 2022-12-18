@@ -1,4 +1,4 @@
 {
   "negative": "default",
-  "sampling": "k_euler_ancestral"
+  "model": "merged"
 }

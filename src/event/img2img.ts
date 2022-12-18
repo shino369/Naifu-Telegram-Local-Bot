@@ -88,7 +88,7 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
       return ctx.replyWithPhoto(originalSizePhoto.file_id, {
         caption: getEditmsgStr(
           newJob,
-          calculateWH(originalSizePhoto.width, originalSizePhoto.height),
+          calculateWH(originalSizePhoto.width, originalSizePhoto.height, 1),
         ),
         reply_markup: getInlinKeyboard(),
       })

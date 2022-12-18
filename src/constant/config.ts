@@ -23,7 +23,11 @@ export const config: Config = {
       big2: {
         height: 960,
         width: 512,
-      }
+      },
+      largest: {
+        height: 1280,
+        width: 768,
+      },
     },
     landscape: {
       medium: {
@@ -45,7 +49,11 @@ export const config: Config = {
       big2: {
         height: 512,
         width: 960,
-      }
+      },
+      largest: {
+        height: 768,
+        width: 1280,
+      },
     },
     square: {
       medium: {
@@ -67,7 +75,11 @@ export const config: Config = {
       big2: {
         height: 768,
         width: 768,
-      }
+      },
+      largest: {
+        height: 1024,
+        width: 1024,
+      },
     },
   },
   default: {

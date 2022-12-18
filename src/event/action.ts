@@ -81,6 +81,7 @@ const action = (bot: Telegraf<Context<Update>> ) => {
           'width',
           'height',
           'seed',
+          'upscale',
         ]
         // const createdUser = parseInt(
         //   text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),

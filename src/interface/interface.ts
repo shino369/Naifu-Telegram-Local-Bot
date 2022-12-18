@@ -24,7 +24,7 @@ export interface Options {
 
 export type Orientation = 'portrait' | 'landscape' | 'square'
 
-export type Size = 'small' | 'medium' | 'large' | 'big' | 'big2'
+export type Size = 'small' | 'medium' | 'large' | 'big' | 'big2' | 'largest'
 
 export interface Config {
   generateImageURL: string
@@ -104,6 +104,7 @@ export interface T2ImgConfig {
   strength: string
   noise: string
   seed: string
+  upscale: string
 }
 
 export type NegativeStr = 'default' | 'long' | 'none' | 'mid'

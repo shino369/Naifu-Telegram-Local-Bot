@@ -1,0 +1,1 @@
+cd C:\Users\nakag\Downloads\naifu\program && run.bat

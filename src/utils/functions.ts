@@ -11,7 +11,7 @@ import find from 'find-process'
 import process from 'process'
 import { exec, execSync } from 'child_process'
 // @ts-ignore
-import { encode } from 'gpt-3-encoder';
+import { encode } from 'gpt-3-encoder'
 
 type colorType = 'text' | 'variable' | 'error' | 'operation'
 
@@ -96,7 +96,7 @@ export const getEditmsgStr = (
     'default negative prompt, ',
   )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}${
     img2img
-      ? `　　[width]: ${img2img.width}　　[height]: ${img2img.height}　　[strength]: ${newCache.config.strength}　　[noise]: ${newCache.config.noise}`
+      ? `　　[width]: ${img2img.width}　　[height]: ${img2img.height}　　[strength]: ${newCache.config.strength}　　[noise]: ${newCache.config.noise}　　[upscale]: ${newCache.config.upscale}　　[seed]: ${newCache.config.seed}`
       : `　　[size]: ${newCache.config.size}　　[orientation]: ${newCache.config.orientation}　　[seed]: ${newCache.config.seed}`
   }`
   return str
@@ -129,7 +129,11 @@ export const processImg = async (
   try {
     let img2imgOptions = {}
     if (img) {
-      const { width: tempW, height: tempH } = calculateWH(img.width, img.height)
+      const { width: tempW, height: tempH } = calculateWH(
+        img.width,
+        img.height,
+        parseFloat(newCache.config.upscale),
+      )
       img2imgOptions = {
         strength: parseFloat(newCache.config.strength),
         noise: parseFloat(newCache.config.noise),
@@ -185,7 +189,7 @@ export const processImg = async (
   }
 }
 
-export const calculateWH = (width: number, height: number) => {
+export const calculateWH = (width: number, height: number, upscale: number) => {
   // calculate WH
   let tempW = Math.floor(width / 64) * 64
   let tempH = Math.floor(height / 64) * 64
@@ -201,6 +205,27 @@ export const calculateWH = (width: number, height: number) => {
     if (tempW > 1024) {
       tempH = Math.floor(((1024 / tempW) * tempH) / 64) * 64
       tempW = 1024
+    }
+  }
+
+  if (upscale > 1) {
+    tempW = tempW * upscale
+    tempH = tempH * upscale
+    tempW = Math.floor(tempW / 64) * 64
+    tempH = Math.floor(tempH / 64) * 64
+
+    if (tempH >= tempW) {
+      // portrait or square
+      if (tempH > 1152) {
+        tempW = Math.floor(((1152 / tempH) * tempW) / 64) * 64
+        tempH = 1152
+      }
+    } else {
+      // landscape
+      if (tempW > 1152) {
+        tempH = Math.floor(((1152 / tempW) * tempH) / 64) * 64
+        tempW = 1152
+      }
     }
   }
 
@@ -232,6 +257,7 @@ export const returnImg2ImgDefaultWithNewSeed = () => {
     strength: config.default.strength,
     noise: config.default.noise,
     seed: randomSeed,
+    upscale: 1,
   }
 }
 
@@ -244,7 +270,9 @@ export const validate = (key: string, match: string) => {
       }
       return true
     case 'size':
-      if (!['small', 'medium', 'large', 'big', 'big2'].includes(str.toLowerCase())) {
+      if (
+        !['small', 'medium', 'large', 'big', 'big2'].includes(str.toLowerCase())
+      ) {
         return false
       }
       return true
@@ -268,7 +296,12 @@ export const validate = (key: string, match: string) => {
       return true
     case 'strength':
       'noise'
-      if (parseFloat(str) > 1 || parseFloat(str) < 0 || str.length > 3) {
+      if (parseFloat(str) > 1 || parseFloat(str) < 0 || str.length > 4) {
+        return false
+      }
+      return true
+    case 'upscale':
+      if (![1, 1.5, 2].includes(parseFloat(str)) || str.length > 3) {
         return false
       }
       return true
@@ -370,6 +403,6 @@ export const switchModel = async (name: string) => {
   }
 }
 
-export const getToken = (str: string) =>{
-  return (encode(str)).length
+export const getToken = (str: string) => {
+  return encode(str).length
 }
