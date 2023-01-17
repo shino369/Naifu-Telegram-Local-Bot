@@ -1,1 +1,0 @@
-cd C:\Users\nakag\Downloads\naifu\program && run_any.bat
