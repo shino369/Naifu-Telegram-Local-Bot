@@ -191,43 +191,27 @@ export const processImg = async (
 
 export const calculateWH = (width: number, height: number, upscale: number) => {
   // calculate WH
-  let tempW = Math.floor(width / 64) * 64
-  let tempH = Math.floor(height / 64) * 64
+  let tempW = Math.floor(width * upscale / 64) * 64
+  let tempH = Math.floor(height * upscale / 64) * 64
+  
+  tempW = Math.floor(tempW / 64) * 64
+  tempH = Math.floor(tempH / 64) * 64
 
   if (tempH >= tempW) {
     // portrait or square
-    if (tempH > 1024) {
-      tempW = Math.floor(((1024 / tempH) * tempW) / 64) * 64
-      tempH = 1024
+    if (tempH > 1152) {
+      tempW = Math.floor(((1152 / tempH) * tempW) / 64) * 64
+      tempH = 1152
     }
   } else {
     // landscape
-    if (tempW > 1024) {
-      tempH = Math.floor(((1024 / tempW) * tempH) / 64) * 64
-      tempW = 1024
+    if (tempW > 1152) {
+      tempH = Math.floor(((1152 / tempW) * tempH) / 64) * 64
+      tempW = 1152
     }
   }
 
-  if (upscale > 1) {
-    tempW = tempW * upscale
-    tempH = tempH * upscale
-    tempW = Math.floor(tempW / 64) * 64
-    tempH = Math.floor(tempH / 64) * 64
 
-    if (tempH >= tempW) {
-      // portrait or square
-      if (tempH > 1152) {
-        tempW = Math.floor(((1152 / tempH) * tempW) / 64) * 64
-        tempH = 1152
-      }
-    } else {
-      // landscape
-      if (tempW > 1152) {
-        tempH = Math.floor(((1152 / tempW) * tempH) / 64) * 64
-        tempW = 1152
-      }
-    }
-  }
 
   return { width: tempW, height: tempH }
 }
@@ -271,7 +255,7 @@ export const validate = (key: string, match: string) => {
       return true
     case 'size':
       if (
-        !['small', 'medium', 'large', 'big', 'big2'].includes(str.toLowerCase())
+        !['small', 'medium', 'large', 'big', 'big2', 'largest'].includes(str.toLowerCase())
       ) {
         return false
       }

@@ -25,7 +25,7 @@ export const config: Config = {
         width: 512,
       },
       largest: {
-        height: 1280,
+        height: 1152,
         width: 768,
       },
     },
@@ -52,7 +52,7 @@ export const config: Config = {
       },
       largest: {
         height: 768,
-        width: 1280,
+        width: 1152,
       },
     },
     square: {
@@ -77,8 +77,8 @@ export const config: Config = {
         width: 768,
       },
       largest: {
-        height: 1024,
-        width: 1024,
+        height: 1152,
+        width: 1152,
       },
     },
   },
