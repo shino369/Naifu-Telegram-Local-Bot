@@ -170,7 +170,7 @@ const action = (bot: Telegraf<Context<Update>> ) => {
         }
 
         // write log
-        writeJsonFileFromPath('./log/log.json', newJob, true)
+        //writeJsonFileFromPath('./log/log.json', newJob, true)
 
         queuingCache.pushQueue(addedWeight)
 
