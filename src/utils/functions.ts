@@ -12,6 +12,7 @@ import process from 'process'
 import { exec, execSync } from 'child_process'
 // @ts-ignore
 import { encode } from 'gpt-3-encoder'
+import { saveFileToLocal } from './fileIO.js'
 
 type colorType = 'text' | 'variable' | 'error' | 'operation'
 
@@ -72,7 +73,6 @@ export const getImageResult = async (payload: Payload) => {
         })
       }
     })
-
   return fileArr
 }
 
@@ -94,7 +94,7 @@ export const getEditmsgStr = (
   )}\n[negative]:\n${newCache.config.negative.replace(
     config.default.negative[queuingCache.getNegativeSetting()],
     'default negative prompt, ',
-  )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}${
+  )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}　　[save]: ${newCache.config.save}${
     img2img
       ? `　　[width]: ${img2img.width}　　[height]: ${img2img.height}　　[strength]: ${newCache.config.strength}　　[noise]: ${newCache.config.noise}　　[upscale]: ${newCache.config.upscale}　　[seed]: ${newCache.config.seed}`
       : `　　[size]: ${newCache.config.size}　　[orientation]: ${newCache.config.orientation}　　[seed]: ${newCache.config.seed}`
@@ -169,7 +169,10 @@ export const processImg = async (
     }
     console.log(_.omit(payload, ['uc', 'image']))
     const files = await getImageResult(payload)
-
+    if(newCache.config.save === '1') {
+      console.log(color('operation', 'saving image to local......'))
+      saveFileToLocal(files)
+    }
     medias = files.map((file, index) => ({
       type: 'photo',
       media: { source: file.image },
@@ -191,27 +194,26 @@ export const processImg = async (
 
 export const calculateWH = (width: number, height: number, upscale: number) => {
   // calculate WH
-  let tempW = Math.floor(width * upscale / 64) * 64
-  let tempH = Math.floor(height * upscale / 64) * 64
-  
-  tempW = Math.floor(tempW / 64) * 64
-  tempH = Math.floor(tempH / 64) * 64
+  let tempW = width * upscale
+  let tempH = height * upscale
 
+  const max = 1280 // telegram image max size
   if (tempH >= tempW) {
     // portrait or square
-    if (tempH > 1152) {
-      tempW = Math.floor(((1152 / tempH) * tempW) / 64) * 64
-      tempH = 1152
+    if (tempH > max) {
+      tempW = Math.floor(((max / tempH) * tempW) / 64) * 64
+      tempH = max
     }
   } else {
     // landscape
-    if (tempW > 1152) {
-      tempH = Math.floor(((1152 / tempW) * tempH) / 64) * 64
-      tempW = 1152
+    if (tempW > max) {
+      tempH = Math.floor(((max / tempW) * tempH) / 64) * 64
+      tempW = max
     }
   }
 
-
+  tempW = Math.floor(tempW / 64) * 64
+  tempH = Math.floor(tempH / 64) * 64
 
   return { width: tempW, height: tempH }
 }
@@ -226,6 +228,7 @@ export const returnDefaultWithNewSeed = () => {
     size: config.default.size,
     orientation: config.default.orientation,
     seed: randomSeed,
+    save: 0
   }
 }
 
@@ -242,6 +245,7 @@ export const returnImg2ImgDefaultWithNewSeed = () => {
     noise: config.default.noise,
     seed: randomSeed,
     upscale: 1,
+    save: 0
   }
 }
 
@@ -255,7 +259,9 @@ export const validate = (key: string, match: string) => {
       return true
     case 'size':
       if (
-        !['small', 'medium', 'large', 'big', 'big2', 'largest'].includes(str.toLowerCase())
+        !['small', 'medium', 'large', 'big', 'big2', 'largest'].includes(
+          str.toLowerCase(),
+        )
       ) {
         return false
       }
@@ -285,7 +291,12 @@ export const validate = (key: string, match: string) => {
       }
       return true
     case 'upscale':
-      if (![1, 1.5, 2].includes(parseFloat(str)) || str.length > 3) {
+      if (parseFloat(str) > 2.0 || parseFloat(str) < 0 || str.length > 4) {
+        return false
+      }
+      return true
+    case 'save':
+      if (![0,1].includes(parseInt(str))) {
         return false
       }
       return true

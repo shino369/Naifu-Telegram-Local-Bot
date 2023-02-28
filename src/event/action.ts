@@ -82,6 +82,7 @@ const action = (bot: Telegraf<Context<Update>> ) => {
           'height',
           'seed',
           'upscale',
+          'save',
         ]
         // const createdUser = parseInt(
         //   text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),
@@ -179,10 +180,26 @@ const action = (bot: Telegraf<Context<Update>> ) => {
           `${number === -1 ? 1 : number} image${
             number > 1 ? 's' : ''
           } pushed to queue.... please wait`,
-        )
+        ).catch((err) => {
+          console.log(err)
+          setTimeout(() => {
+            ctx.telegram.sendMessage(
+              channelId ? channelId : userId,
+              `Error: ${err.message}. Please try again.`,
+            )
+          }, 3000)
+        })
 
       default:
-        return ctx.reply('default') // not defined
+        return ctx.reply('default').catch((err) => {
+          console.log(err)
+          setTimeout(() => {
+            ctx.telegram.sendMessage(
+              channelId ? channelId : userId,
+              `Error: ${err.message}. Please try again.`,
+            )
+          }, 3000)
+        }) // not defined
     }
 
     // return ctx.answerCbQuery(`Oh, ${ctx.match[0]}! Great choice`)

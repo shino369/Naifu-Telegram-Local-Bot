@@ -148,6 +148,12 @@ export class Store {
       case 2:
         this.sampling = 'ddim'
         break
+      case 3:
+        this.sampling = 'k_dpmpp_2m_ka'
+        break
+      case 4: 
+        this.sampling = 'k_dpmpp_sde_ka'
+        break
     }
     writeJsonFileFromPath('./store.json', {
       negative: this.negativeSetting,

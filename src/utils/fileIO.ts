@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { FileRes } from '../types.js'
 import { color } from './functions.js'
 
 export function getJsonFileFromPath(filePath: string) {
@@ -65,4 +66,12 @@ export function writeJsonFileFromPath(
     console.error(e)
     console.error('Error: error when writting setting')
   }
+}
+
+export const saveFileToLocal = (fileArr: FileRes[]) => {
+  fileArr.forEach((file) => {
+    fs.writeFile('./img/' + file.name, file.image, 'base64', (err) => {
+      err && console.log(err)
+    })
+  })
 }

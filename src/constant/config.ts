@@ -65,12 +65,12 @@ export const config: Config = {
         width: 1024,
       },
       small: {
-        height: 512,
+        height: 640,
         width: 512,
       },
       big: {
         height: 960,
-        width: 960,
+        width: 768,
       },
       big2: {
         height: 768,

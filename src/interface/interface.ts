@@ -105,6 +105,7 @@ export interface T2ImgConfig {
   noise: string
   seed: string
   upscale: string
+  save: string
 }
 
 export type NegativeStr = 'default' | 'long' | 'none' | 'mid'

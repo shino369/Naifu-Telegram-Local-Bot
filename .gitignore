@@ -14,5 +14,6 @@ build/
 
 compress/
 log/
+img/
 naifu/
 store.json
