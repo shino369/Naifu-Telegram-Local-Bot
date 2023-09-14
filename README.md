@@ -51,7 +51,7 @@ There are some other commands with different usage, please see source code.
 For img2img, choose an image and input the caption with same format.\
 Oversize image will be adjusted to smaller size.\
 \
-<img src="./src/asset/001.png" width="512">\
+<img src="./src/asset/001.jpg" width="512">\
 \
 <img src="./src/asset/002.png" width="512">\
 \
