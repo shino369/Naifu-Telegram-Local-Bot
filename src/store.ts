@@ -11,7 +11,7 @@ import {
 } from './utils/index.js'
 import { Telegraf } from 'telegraf/typings/telegraf'
 import fetch from 'node-fetch'
-
+const MAX_RETRY = 5
 export class Store {
   private queue: QueueInstance[]
   private processQueue: UserConfig[]
@@ -151,7 +151,7 @@ export class Store {
       case 3:
         this.sampling = 'k_dpmpp_2m_ka'
         break
-      case 4: 
+      case 4:
         this.sampling = 'k_dpmpp_sde_ka'
         break
     }
@@ -160,6 +160,21 @@ export class Store {
       sampling: this.sampling,
     })
     return this.sampling
+  }
+
+  public sendErrorMsg(
+    replyID: number,
+    msg: string,
+    replyToMsgObj: Object,
+    error: string,
+  ) {
+    console.log(color('error', error))
+    this.bot.telegram.sendMessage(replyID, msg, replyToMsgObj).catch(error => {
+      console.log(
+        color('error', 'Rrror sending error message. Should be timeout.'),
+      )
+      console.log(error)
+    })
   }
 
   private async startBatchJob() {
@@ -175,33 +190,52 @@ export class Store {
         this.pushprocessQueue(job)
         // console.log(job)
 
-        // fetch the actual image if img2img
-        const errorRetry = async () => {
-          try {
-            if (job.img) {
-            console.log('fetching: ', job.img.file)
-            const res = await fetch(job.img.file)
-            const bff = await res.buffer()
-            job.img = {
-              ...job.img,
-              file: bff.toString('base64'),
-            }
-          }
-          } catch (err) {
-            console.log('error fetching image from server... retry in 5 sec...')
-            await this.delay(5000)
-            errorRetry()
-          }
-        }
-        
-        await errorRetry()
-
-        const img = await processImg(job.number, job, job.img)
-        const endTime = new Date()
-
+        const replyID = job.channelId ? job.channelId : job.id
         const replyToMsgObj = {
           reply_to_message_id: job.messageId,
         }
+
+        // fetch the actual image if img2img
+        let retryCount = 0
+        const errorRetry = async () => {
+          try {
+            if (job.img) {
+              console.log('fetching: ', job.img.file)
+              const res = await fetch(job.img.file)
+              const bff = await res.buffer()
+              job.img = {
+                ...job.img,
+                file: bff.toString('base64'),
+              }
+              console.log('fetch image from telegram succeeded.')
+            }
+          } catch (err) {
+            retryCount++
+            if (retryCount <= MAX_RETRY) {
+              console.log(
+                'error fetching image from server... retry in 5 sec...',
+              )
+              await this.delay(5000)
+              errorRetry()
+            } else {
+              this.sendErrorMsg(
+                replyID,
+                'max retry exceeded. cannot fetch img from telegram server, maybe timeout',
+                replyToMsgObj,
+                '',
+              )
+            }
+          }
+        }
+
+        await errorRetry()
+
+        if (job.img && !job.img.file) {
+          continue
+        }
+
+        const img = await processImg(job.number, job, job.img)
+        const endTime = new Date()
 
         // success
 
@@ -216,74 +250,77 @@ export class Store {
               ),
             )
 
-            if(parseInt(job.config.save)){
+            if (parseInt(job.config.save)) {
               console.log(
                 color(
                   'variable',
                   `return image with uncompressed format on by one`,
                 ),
               )
-                let errCount = 0
-                for (let i = 0; i < img.length; i ++) {
-                  const source = (img[i].media as FileSource)
-                  try {
-                    await this.bot.telegram
-                    .sendDocument(
-                      job.channelId ? job.channelId : job.id,
-                      source,
-                      replyToMsgObj,
-                    )
-                  } catch (err) {
-                    console.log(err)
-                    errCount++
-                  }
-                }
-
-                if(errCount > 0) {
-                  this.bot.telegram
-                  .sendMessage(
+              let errCount = 0
+              for (let i = 0; i < img.length; i++) {
+                const source = img[i].media as FileSource
+                try {
+                  await this.bot.telegram.sendDocument(
                     job.channelId ? job.channelId : job.id,
-                    `${img}: Job of generating ${errCount} image(s) created by ${job.first_name} failed`,
+                    source,
                     replyToMsgObj,
                   )
-                  .catch(error => {
-                    console.log(color('error', 'error sending reply'))
-                    console.log(error)
-                  })
+                } catch (err) {
+                  console.log(err)
+                  errCount++
                 }
+              }
 
-            } else {
-              this.bot.telegram
-                .sendMediaGroup(
-                  job.channelId ? job.channelId : job.id,
-                  img,
+              if (errCount > 0) {
+                this.sendErrorMsg(
+                  replyID,
+                  `${img}: Job of generating ${errCount} image(s) created by ${job.first_name} success but failed to send.`,
                   replyToMsgObj,
+                  'error count caught.',
                 )
-                .catch(error => {
-                  console.log(color('error', 'error sending reply'))
-                  console.log(error)
-                  setTimeout(() => {
-                    this.bot.telegram
-                      .sendMediaGroup(job.channelId ? job.channelId : job.id, img)
-                      .catch(error => {
-                        console.log(color('error', 'error sending reply'))
-                      })
-                  }, 3000)
-                })
+              }
+            } else {
+              // compressed
+              retryCount = 0
+              const retrySending = () => {
+                this.bot.telegram
+                  .sendMediaGroup(
+                    job.channelId ? job.channelId : job.id,
+                    img,
+                    replyToMsgObj,
+                  )
+                  .catch(async error => {
+                    console.log(
+                      color('error', 'error sending reply. Retry in 5 sec...'),
+                    )
+                    console.log(error)
+                    if (retryCount <= MAX_RETRY && !String(error).includes('FAILED')) {
+                      console.log(
+                        'error returning image to server... retry in 5 sec...',
+                      )
+                      retryCount++
+                      await this.delay(5000)
+                      retrySending()
+                    } else {
+                      this.sendErrorMsg(
+                        replyID,
+                        'max retry exceeded. cannot return img to telegram server, maybe timeout or wrong base64 decode',
+                        replyToMsgObj,
+                        '',
+                      )
+                    }
+                  })
+              }
+              retrySending()
             }
-
-
           } else {
-            this.bot.telegram
-              .sendMessage(
-                job.channelId ? job.channelId : job.id,
-                `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
-                replyToMsgObj,
-              )
-              .catch(error => {
-                console.log(color('error', 'error sending reply'))
-                console.log(error)
-              })
+            this.sendErrorMsg(
+              replyID,
+              `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
+              replyToMsgObj,
+              'image process error',
+            )
           }
         } catch (e) {
           console.log(color('error', 'error sending reply'))
