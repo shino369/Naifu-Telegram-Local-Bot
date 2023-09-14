@@ -1,6 +1,7 @@
 # Naifu Telegram Local Bot
  
-Simple telegram bot to connect your local Naifu environemnt if you run in your own PC (using your own GPU).\
+Simple telegram bot to connect your local Naifu environemnt (well, the old novelAI) if you run in your own PC (using your own GPU).\
+Currently no plan to migrate to use Automatic 1111's API. You can change it youself.\
 You can also do some adjustment to connect to the the official Novel Ai Diffusion.\
 \
 To run it, first add your Telegram Bot token in .env file
@@ -21,10 +22,15 @@ use ```/prompt``` in message along with:\
 `orientation:` portrait | landscape | square\
 `steps:` number\
 `scale:` number\
+`seed:` number (only support when using exact seed button)\
+`save` 1 | 0 to save in server and send as png document\
+`limit` 1 | 0 restict max size (telegram has a upper limit of 1280)\
+works for i2i:\
 `strength:` number\
 `noise:` number\
-`upscaler:` number\
-`seed:` number (only support when using exact seed button)\
+`upscaler:` number
+
+
 \
 Each input options must be separated by newline, or it will be considered as same property\
 e.g. 
@@ -37,15 +43,20 @@ steps: 28
 size: big
 ```
 \
-Support default negative prompt.\
+Support default negative prompt.
+
+There are some other commands with different usage, please see source code.
+
 \
 For img2img, choose an image and input the caption with same format.\
 Oversize image will be adjusted to smaller size.\
 \
-<img src="./src/asset/001.jpg" width="512">\
+<img src="./src/asset/001.png" width="512">\
 \
-<img src="./src/asset/002.jpg" width="512">\
+<img src="./src/asset/002.png" width="512">\
 \
-The exact seed will strictly use your input seed to generate. Otherwise each time will be created by a new random seed.\
+<img src="./src/asset/003.png" width="512">\
 \
-<img src="./src/asset/003.jpg" width="512">
+<img src="./src/asset/004.png" width="512">\
+\
+<img src="./src/asset/005.png" width="512">
