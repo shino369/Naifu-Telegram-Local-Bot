@@ -73,7 +73,7 @@ export const config: Config = {
         width: 768,
       },
       big2: {
-        height: 768,
+        height: 1024,
         width: 768,
       },
       largest: {

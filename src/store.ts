@@ -1,7 +1,7 @@
 import { Subject, Subscription } from 'rxjs'
 import Context from 'telegraf/typings/context'
 import { Update } from 'telegraf/typings/core/types/typegram'
-import { NegativeStr, QueueInstance, UserConfig } from './types.js'
+import { FileSource, NegativeStr, QueueInstance, UserConfig } from './types.js'
 import {
   color,
   getJsonFileFromPath,
@@ -176,14 +176,25 @@ export class Store {
         // console.log(job)
 
         // fetch the actual image if img2img
-        if (job.img) {
-          const res = await fetch(job.img.file)
-          const bff = await res.buffer()
-          job.img = {
-            ...job.img,
-            file: bff.toString('base64'),
+        const errorRetry = async () => {
+          try {
+            if (job.img) {
+            console.log('fetching: ', job.img.file)
+            const res = await fetch(job.img.file)
+            const bff = await res.buffer()
+            job.img = {
+              ...job.img,
+              file: bff.toString('base64'),
+            }
+          }
+          } catch (err) {
+            console.log('error fetching image from server... retry in 5 sec...')
+            await this.delay(5000)
+            errorRetry()
           }
         }
+        
+        await errorRetry()
 
         const img = await processImg(job.number, job, job.img)
         const endTime = new Date()
@@ -205,23 +216,63 @@ export class Store {
               ),
             )
 
-            this.bot.telegram
-              .sendMediaGroup(
-                job.channelId ? job.channelId : job.id,
-                img,
-                replyToMsgObj,
+            if(parseInt(job.config.save)){
+              console.log(
+                color(
+                  'variable',
+                  `return image with uncompressed format on by one`,
+                ),
               )
-              .catch(error => {
-                console.log(color('error', 'error sending reply'))
-                console.log(error)
-                setTimeout(() => {
+                let errCount = 0
+                for (let i = 0; i < img.length; i ++) {
+                  const source = (img[i].media as FileSource)
+                  try {
+                    await this.bot.telegram
+                    .sendDocument(
+                      job.channelId ? job.channelId : job.id,
+                      source,
+                      replyToMsgObj,
+                    )
+                  } catch (err) {
+                    console.log(err)
+                    errCount++
+                  }
+                }
+
+                if(errCount > 0) {
                   this.bot.telegram
-                    .sendMediaGroup(job.channelId ? job.channelId : job.id, img)
-                    .catch(error => {
-                      console.log(color('error', 'error sending reply'))
-                    })
-                }, 3000)
-              })
+                  .sendMessage(
+                    job.channelId ? job.channelId : job.id,
+                    `${img}: Job of generating ${errCount} image(s) created by ${job.first_name} failed`,
+                    replyToMsgObj,
+                  )
+                  .catch(error => {
+                    console.log(color('error', 'error sending reply'))
+                    console.log(error)
+                  })
+                }
+
+            } else {
+              this.bot.telegram
+                .sendMediaGroup(
+                  job.channelId ? job.channelId : job.id,
+                  img,
+                  replyToMsgObj,
+                )
+                .catch(error => {
+                  console.log(color('error', 'error sending reply'))
+                  console.log(error)
+                  setTimeout(() => {
+                    this.bot.telegram
+                      .sendMediaGroup(job.channelId ? job.channelId : job.id, img)
+                      .catch(error => {
+                        console.log(color('error', 'error sending reply'))
+                      })
+                  }, 3000)
+                })
+            }
+
+
           } else {
             this.bot.telegram
               .sendMessage(
@@ -232,12 +283,6 @@ export class Store {
               .catch(error => {
                 console.log(color('error', 'error sending reply'))
                 console.log(error)
-                setTimeout(() => {
-                  this.bot.telegram.sendMessage(
-                    job.channelId ? job.channelId : job.id,
-                    `${img}: Job of generating ${job.number} image(s) created by ${job.first_name} failed`,
-                  )
-                }, 3000)
               })
           }
         } catch (e) {
@@ -253,7 +298,7 @@ export class Store {
 
         // if still have remaining job, delay before next loop
         if (this.queue.length > 0) {
-          await this.delay(15000)
+          await this.delay(40000)
         }
       }
       this.lock = false

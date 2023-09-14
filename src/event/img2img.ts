@@ -17,6 +17,7 @@ const PROMPT = 'prompt'
 const img2img = (bot: Telegraf<Context<Update>>) => {
   bot.on('photo', async ctx => {
     const userId = ctx.message.from.id
+    const channelId = ctx.message.chat.id
     // if (queuingCache.getQueue().find(userConfig => userConfig.id === userId)) {
     //   console.log(color('error', `previous job not finished`))
     //   return ctx.reply(
@@ -88,9 +89,25 @@ const img2img = (bot: Telegraf<Context<Update>>) => {
       return ctx.replyWithPhoto(originalSizePhoto.file_id, {
         caption: getEditmsgStr(
           newJob,
-          calculateWH(originalSizePhoto.width, originalSizePhoto.height, 1),
+          calculateWH(originalSizePhoto.width, originalSizePhoto.height, 1, parseInt(newJob.config.limit)),
         ),
         reply_markup: getInlinKeyboard(),
+      }).catch(error => {
+        console.log(color('error', 'error sending reply'))
+        console.log(error)
+        setTimeout(() => {
+          bot.telegram
+            .sendPhoto(channelId ? channelId : userId, originalSizePhoto.file_id, {
+              caption: getEditmsgStr(
+                newJob,
+                calculateWH(originalSizePhoto.width, originalSizePhoto.height, 1, parseInt(newJob.config.limit)),
+              ),
+              reply_markup: getInlinKeyboard(),
+            })
+            .catch(error => {
+              console.log(color('error', 'error sending reply'))
+            })
+        }, 3000)
       })
     }
   })

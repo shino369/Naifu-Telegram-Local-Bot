@@ -21,16 +21,29 @@ const action = (bot: Telegraf<Context<Update>> ) => {
     let photo
     let url: URL
     let img
+    const replyToMsgObj = {
+      reply_to_message_id: ctx.update.callback_query.message?.message_id,
+    }
     if (!text) {
       text = (ctx.update.callback_query.message as any)['caption']
       const photos = (ctx.update.callback_query.message as any)['photo']
       photo = photos[photos.length - 1]
-      url = await bot.telegram.getFileLink(photo.file_id as string)
-      img = {
-        file: url.toString(),
-        width: photo.width,
-        height: photo.height,
+      try {
+        url = await bot.telegram.getFileLink(photo.file_id as string)
+        img = {
+          file: url.toString(),
+          width: photo.width,
+          height: photo.height,
+        }
+      } catch (err) {
+
+        ctx.telegram.sendMessage(
+          channelId ? channelId : userId,
+          `Error getting img from action: ${err.message}. Please try again.`,
+          replyToMsgObj
+        )
       }
+
     }
 
     // if (
@@ -83,6 +96,7 @@ const action = (bot: Telegraf<Context<Update>> ) => {
           'seed',
           'upscale',
           'save',
+          'limit',
         ]
         // const createdUser = parseInt(
         //   text.substring(text.indexOf('[ID]:') + 5, text.indexOf('\n')).trim(),
@@ -186,6 +200,7 @@ const action = (bot: Telegraf<Context<Update>> ) => {
             ctx.telegram.sendMessage(
               channelId ? channelId : userId,
               `Error: ${err.message}. Please try again.`,
+              replyToMsgObj
             )
           }, 3000)
         })

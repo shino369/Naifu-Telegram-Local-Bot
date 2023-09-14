@@ -90,10 +90,10 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
     // write log
     // writeJsonFileFromPath('./log/log.json', newJob, true)
     let str = newJob.config.positive
-    const arrs = ['{','}','[',']']
-    arrs.map((arr) => {
-        str =  str.replaceAll(arr,'')
-        return
+    const arrs = ['{', '}', '[', ']']
+    arrs.map(arr => {
+      str = str.replaceAll(arr, '')
+      return
     })
     const tokens = getToken(str)
     console.log(tokens)
@@ -154,6 +154,20 @@ const prompt = (bot: Telegraf<Context<Update>>) => {
 
   bot.command(CHANGE, async ctx => {
     const modelName = ctx.message.text.substring(CHANGE.length + 1).trim()
+    const available = [
+      'realdos',
+      'realdosxxart',
+      'realdosxxreal',
+      'realistic',
+      'west',
+      'xxart',
+      'xxreal',
+      'anything',
+      'dos',
+    ]
+    if(!available.includes(modelName)) {
+      return ctx.reply(`No model with name [${modelName}]. Available options: ${available.join(', ')}`)
+    }
     queuingCache.switchModelByName(modelName, ctx.message.chat.id)
 
     return ctx.reply('Switching model... Please wait...')

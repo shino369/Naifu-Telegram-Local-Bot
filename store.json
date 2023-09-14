@@ -1,4 +1,4 @@
 {
   "negative": "default",
-  "model": "merged"
+  "sampling": "k_dpmpp_2m_ka"
 }

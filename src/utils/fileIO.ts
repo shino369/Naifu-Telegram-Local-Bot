@@ -69,6 +69,10 @@ export function writeJsonFileFromPath(
 }
 
 export const saveFileToLocal = (fileArr: FileRes[]) => {
+  if (!fs.existsSync('./img/')){
+      fs.mkdirSync('./img/')
+  }
+  
   fileArr.forEach((file) => {
     fs.writeFile('./img/' + file.name, file.image, 'base64', (err) => {
       err && console.log(err)

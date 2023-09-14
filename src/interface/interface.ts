@@ -106,10 +106,15 @@ export interface T2ImgConfig {
   seed: string
   upscale: string
   save: string
+  limit: string
 }
 
 export type NegativeStr = 'default' | 'long' | 'none' | 'mid'
 
+export interface FileSource {
+  source: Buffer
+  filename: string
+}
 
 // store.ts
 

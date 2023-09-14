@@ -94,7 +94,7 @@ export const getEditmsgStr = (
   )}\n[negative]:\n${newCache.config.negative.replace(
     config.default.negative[queuingCache.getNegativeSetting()],
     'default negative prompt, ',
-  )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}　　[save]: ${newCache.config.save}${
+  )}\n[scale]: ${newCache.config.scale}　　[steps]: ${newCache.config.steps}　　[save]: ${newCache.config.save}　　[limit]: ${newCache.config.limit}${
     img2img
       ? `　　[width]: ${img2img.width}　　[height]: ${img2img.height}　　[strength]: ${newCache.config.strength}　　[noise]: ${newCache.config.noise}　　[upscale]: ${newCache.config.upscale}　　[seed]: ${newCache.config.seed}`
       : `　　[size]: ${newCache.config.size}　　[orientation]: ${newCache.config.orientation}　　[seed]: ${newCache.config.seed}`
@@ -133,6 +133,7 @@ export const processImg = async (
         img.width,
         img.height,
         parseFloat(newCache.config.upscale),
+        parseFloat(newCache.config.limit),
       )
       img2imgOptions = {
         strength: parseFloat(newCache.config.strength),
@@ -175,7 +176,7 @@ export const processImg = async (
     }
     medias = files.map((file, index) => ({
       type: 'photo',
-      media: { source: file.image },
+      media: { source: file.image, filename: file.name },
       caption: `Created by${
         newCache.first_name ? ` ${newCache.first_name}` : ''
       }\nseed: ${payload.seed} #${index}\ngetconfig ${newCache.configId}`,
@@ -192,12 +193,15 @@ export const processImg = async (
   }
 }
 
-export const calculateWH = (width: number, height: number, upscale: number) => {
+export const calculateWH = (width: number, height: number, upscale: number, limit: number) => {
+  if(upscale) {
+    console.log(color('operation', `upscale to ${upscale}`))
+  }
   // calculate WH
   let tempW = width * upscale
   let tempH = height * upscale
 
-  const max = 1280 // telegram image max size
+  const max = limit ? 1280 : 1600 // telegram image max size | possible size for no strange result
   if (tempH >= tempW) {
     // portrait or square
     if (tempH > max) {
@@ -228,7 +232,8 @@ export const returnDefaultWithNewSeed = () => {
     size: config.default.size,
     orientation: config.default.orientation,
     seed: randomSeed,
-    save: 0
+    save: 0,
+    limit: 1,
   }
 }
 
@@ -245,7 +250,8 @@ export const returnImg2ImgDefaultWithNewSeed = () => {
     noise: config.default.noise,
     seed: randomSeed,
     upscale: 1,
-    save: 0
+    save: 0,
+    limit: 1,
   }
 }
 
@@ -296,6 +302,11 @@ export const validate = (key: string, match: string) => {
       }
       return true
     case 'save':
+      if (![0,1].includes(parseInt(str))) {
+        return false
+      }
+      return true
+    case 'limit':
       if (![0,1].includes(parseInt(str))) {
         return false
       }
